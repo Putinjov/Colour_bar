@@ -1,57 +1,104 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
+import { format } from "date-fns";
+import BookingLayout from "../ui/BookingLayout";
 import { loadDraft, saveDraft, clearDraft } from "../lib/storage";
 import { createBooking } from "../lib/api";
-import { format } from "date-fns";
+import { useI18n } from "../i18n";
 
 const schema = z.object({
-  clientName: z.string().min(2),
-  phone: z.string().min(6),
+  clientName: z.string().min(2).max(60),
+  phone: z.string().min(6).max(30),
   notes: z.string().max(300).optional(),
 });
 type FormVals = z.infer<typeof schema>;
 
 export default function Details() {
   const nav = useNavigate();
+  const { lang } = useI18n();
   const draft = loadDraft();
 
-  const ready = Boolean(draft.serviceId && draft.startAt);
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<FormVals>({
+  const ready = Boolean(draft.serviceId && draft.startAt && draft.endAt);
+
+  const when = useMemo(() => (draft.startAt ? new Date(draft.startAt) : null), [draft.startAt]);
+  const end = useMemo(() => (draft.endAt ? new Date(draft.endAt) : null), [draft.endAt]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormVals>({
     defaultValues: {
       clientName: draft.clientName ?? "",
       phone: draft.phone ?? "",
       notes: draft.notes ?? "",
-    }
+    },
   });
 
   if (!ready) {
     return (
-      <Card>
-        <div className="text-sm font-semibold">Немає вибраного слоту</div>
-        <div className="mt-3"><Button className="w-full" onClick={() => nav("/services")}>Почати спочатку</Button></div>
-      </Card>
+      <BookingLayout
+        step={3}
+        title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
+        subtitle={lang === "en" ? "Enter your details to confirm." : "Введіть дані для підтвердження."}
+      >
+        <div className="text-xl font-semibold text-brand-ink">
+          {lang === "en" ? "No selected time slot" : "Немає вибраного слоту"}
+        </div>
+
+        <p className="mt-2 text-sm text-brand-sub">
+          {lang === "en"
+            ? "Please go back and choose a time first."
+            : "Поверніться назад і оберіть час."}
+        </p>
+
+        <div className="mt-6">
+          <button
+            onClick={() => nav("/datetime")}
+            className="rounded-full bg-brand-ink text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition"
+          >
+            {lang === "en" ? "Choose Time" : "Обрати час"}
+          </button>
+        </div>
+      </BookingLayout>
     );
   }
 
-  const when = new Date(draft.startAt!);
-
   return (
-    <Card>
-      <div className="text-sm font-semibold">Дані клієнта</div>
-      <div className="mt-2 text-xs text-brand-ink/70">
-        {draft.serviceTitle} • {format(when, "EEE dd/MM")} • {format(when, "HH:mm")}
+    <BookingLayout
+      step={3}
+      title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
+      subtitle={
+        lang === "en"
+          ? "Enter your details and confirm — we’ll reserve your slot instantly."
+          : "Введіть дані та підтвердіть — ми одразу зарезервуємо ваш слот."
+      }
+    >
+      <div className="text-xl md:text-2xl font-semibold text-brand-ink">
+        {lang === "en" ? "Your Details" : "Ваші дані"}
+      </div>
+
+      {/* Summary bar like premium UI */}
+      <div className="mt-4 rounded-[18px] border border-brand-line bg-brand-muted p-4">
+        <div className="text-sm font-semibold text-brand-ink">{draft.serviceTitle}</div>
+        {when && (
+          <div className="mt-1 text-sm text-brand-sub">
+            {format(when, "EEE dd/MM")} • {format(when, "HH:mm")}
+            {end ? ` – ${format(end, "HH:mm")}` : ""}
+          </div>
+        )}
       </div>
 
       <form
-        className="mt-4 space-y-3"
+        className="mt-6 space-y-4"
         onSubmit={handleSubmit(async (vals) => {
-          // light zod check
           const parsed = schema.safeParse(vals);
-          if (!parsed.success) return;
+          if (!parsed.success) {
+            alert(lang === "en" ? "Please check your input." : "Перевірте введені дані.");
+            return;
+          }
 
           saveDraft({ ...draft, ...parsed.data });
 
@@ -63,50 +110,73 @@ export default function Details() {
               phone: parsed.data.phone,
               notes: parsed.data.notes || undefined,
             });
-            const saved = loadDraft();
+
+            const last = loadDraft();
             clearDraft();
-            saveDraft(saved); // keep last for success screen display
+            saveDraft(last); // keep summary for success page
             nav("/success");
           } catch (e: any) {
-            alert(e?.message || "Помилка створення запису");
+            alert(e?.message || (lang === "en" ? "Booking failed" : "Не вдалося створити запис"));
           }
         })}
       >
-        <label className="block">
-          <div className="text-xs text-brand-ink/70 mb-1">Ім’я</div>
-          <input
-            className="w-full rounded-xl2 bg-white/5 border border-white/10 px-3 py-3 text-sm outline-none focus:border-brand-yellow"
-            {...register("clientName")}
-            placeholder="Напр. Marina"
-          />
-        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="block">
+            <div className="text-xs font-semibold text-brand-sub mb-1">
+              {lang === "en" ? "Name" : "Ім’я"}
+            </div>
+            <input
+              className="w-full rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm outline-none focus:border-brand-purple"
+              {...register("clientName")}
+              placeholder={lang === "en" ? "e.g. Marina" : "Напр. Маріна"}
+            />
+          </label>
+
+          <label className="block">
+            <div className="text-xs font-semibold text-brand-sub mb-1">
+              {lang === "en" ? "Phone" : "Телефон"}
+            </div>
+            <input
+              className="w-full rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm outline-none focus:border-brand-purple"
+              {...register("phone")}
+              placeholder={lang === "en" ? "+353 ..." : "+353 ..."}
+            />
+          </label>
+        </div>
 
         <label className="block">
-          <div className="text-xs text-brand-ink/70 mb-1">Телефон</div>
-          <input
-            className="w-full rounded-xl2 bg-white/5 border border-white/10 px-3 py-3 text-sm outline-none focus:border-brand-yellow"
-            {...register("phone")}
-            placeholder="+353 ..."
-          />
-        </label>
-
-        <label className="block">
-          <div className="text-xs text-brand-ink/70 mb-1">Коментар (опц.)</div>
+          <div className="text-xs font-semibold text-brand-sub mb-1">
+            {lang === "en" ? "Notes (optional)" : "Коментар (опційно)"}
+          </div>
           <textarea
-            className="w-full rounded-xl2 bg-white/5 border border-white/10 px-3 py-3 text-sm outline-none focus:border-brand-yellow min-h-[90px]"
+            className="w-full rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm outline-none focus:border-brand-purple min-h-[110px]"
             {...register("notes")}
-            placeholder="Напр. довге волосся, хочу balayage…"
+            placeholder={
+              lang === "en"
+                ? "Anything we should know? (hair length, preferences...)"
+                : "Напр. довжина волосся, побажання…"
+            }
           />
         </label>
 
-        <Button disabled={isSubmitting} className="w-full" type="submit">
-          {isSubmitting ? "Бронюємо…" : "Підтвердити запис"}
-        </Button>
+        <div className="mt-2 flex flex-col sm:flex-row gap-3 justify-between">
+          <button
+            type="button"
+            onClick={() => nav("/datetime")}
+            className="rounded-full border border-brand-line bg-brand-muted px-6 py-3 text-sm font-semibold text-brand-ink hover:brightness-98 transition"
+          >
+            {lang === "en" ? "Back" : "Назад"}
+          </button>
 
-        <Button variant="ghost" className="w-full" type="button" onClick={() => nav("/datetime")}>
-          Назад до часу
-        </Button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-full bg-brand-ink text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (lang === "en" ? "Booking…" : "Бронюємо…") : (lang === "en" ? "Confirm Booking" : "Підтвердити запис")}
+          </button>
+        </div>
       </form>
-    </Card>
+    </BookingLayout>
   );
 }

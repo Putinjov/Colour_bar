@@ -14,25 +14,27 @@ export default function BookingLayout({
   const { lang } = useI18n();
 
   return (
-    <div className="space-y-6">
-      {/* Top heading */}
+    <div className="space-y-7">
+      {/* Heading */}
       <div className="text-center">
-        <div className="text-[11px] tracking-[0.18em] text-brand-yellow/90">
+        <div className="text-[11px] tracking-[0.18em] text-brand-yellow">
           {lang === "en" ? "BOOK ONLINE" : "ЗАПИС ОНЛАЙН"}
         </div>
-        <h1 className="mt-3 text-3xl md:text-5xl font-light">
+
+        <h1 className="mt-3 text-3xl md:text-5xl font-light text-brand-ink">
           {title}
         </h1>
+
         {subtitle && (
-          <p className="mt-2 text-sm md:text-base text-white/70 max-w-2xl mx-auto">
+          <p className="mt-2 text-sm md:text-base text-brand-sub max-w-2xl mx-auto">
             {subtitle}
           </p>
         )}
       </div>
 
-      {/* 2-column layout (left main + right sidebar) */}
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr] items-start">
-        {/* Main card */}
+      {/* Content + Sidebar */}
+      <div className="grid gap-5 lg:grid-cols-[2fr_1fr] items-start">
+        {/* Main */}
         <div className="rounded-[24px] border border-brand-line bg-brand-surface shadow-soft overflow-hidden">
           <Stepper step={step} />
           <div className="p-5 md:p-7">{children}</div>
@@ -40,44 +42,35 @@ export default function BookingLayout({
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-[24px] border border-brand-line bg-brand-surface p-5 shadow-soft">
-            <div className="text-sm font-semibold">{lang === "en" ? "Visit Us" : "Контакти"}</div>
-            <div className="mt-4 space-y-3 text-sm text-white/75">
-              <Row
-                icon="📍"
-                title={lang === "en" ? "Location" : "Локація"}
-                text="Tullamore, Ireland"
-              />
-              <Row
-                icon="🕒"
-                title={lang === "en" ? "Hours" : "Години"}
-                text={lang === "en" ? "Tue–Sat: 10:00–18:00" : "Вт–Сб: 10:00–18:00"}
-              />
-              <Row
-                icon="☎️"
-                title={lang === "en" ? "Contact" : "Звʼязок"}
-                text={lang === "en" ? "Phone / Instagram (add)" : "Телефон / Instagram (додати)"}
-              />
+          <div className="rounded-[24px] border border-brand-line bg-brand-surface shadow-soft p-5">
+            <div className="text-sm font-semibold text-brand-ink">
+              {lang === "en" ? "Visit Us" : "Контакти"}
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <Row icon="📍" title={lang === "en" ? "Location" : "Локація"} text="Tullamore, Ireland" />
+              <Row icon="🕒" title={lang === "en" ? "Hours" : "Години"} text={lang === "en" ? "Tue–Sat: 10:00–18:00" : "Вт–Сб: 10:00–18:00"} />
+              <Row icon="☎️" title={lang === "en" ? "Contact" : "Звʼязок"} text={lang === "en" ? "Phone / Instagram (add)" : "Телефон / Instagram (додати)"} />
             </div>
 
             <button
               onClick={() => nav("/")}
-              className="mt-4 w-full rounded-xl2 border border-white/10 bg-black/20 px-4 py-3 text-sm font-semibold text-white/80 hover:bg-black/30 transition"
+              className="mt-4 w-full rounded-full border border-brand-line bg-brand-muted px-5 py-3 text-sm font-semibold text-brand-ink hover:brightness-98 transition"
             >
-              {lang === "en" ? "Back to Landing" : "Назад на лендинг"}
+              {lang === "en" ? "Back to Home" : "На головну"}
             </button>
           </div>
 
-          <div className="rounded-[24px] bg-brand-ink text-white p-6 shadow-soft">
-            <div className="text-sm font-semibold text-white">
+          <div className="rounded-[24px] bg-brand-ink text-white shadow-soft p-6">
+            <div className="text-sm font-semibold">
               {lang === "en" ? "Cancellation Policy" : "Правила скасування"}
             </div>
-            <p className="mt-3 text-sm text-white/70 leading-relaxed">
+            <p className="mt-3 text-sm text-white/75 leading-relaxed">
               {lang === "en"
                 ? "Please give at least 24 hours notice if you need to reschedule or cancel."
                 : "Будь ласка, попередьте мінімум за 24 години, якщо потрібно перенести або скасувати запис."}
             </p>
-            <p className="mt-3 text-sm text-white/70 leading-relaxed">
+            <p className="mt-3 text-sm text-white/75 leading-relaxed">
               {lang === "en"
                 ? "Late cancellations may be subject to a fee."
                 : "Пізнє скасування може мати оплату."}
@@ -98,29 +91,34 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
 
   return (
     <div className="px-5 md:px-7 py-4 border-b border-brand-line bg-brand-muted">
-      <div className="flex items-center justify-center gap-4 md:gap-8">
+      <div className="flex items-center justify-between">
         {items.map((it, idx) => {
           const active = step === it.n;
           const done = step > it.n;
-          return (
-            <div key={it.n} className="flex items-center gap-3">
-              <div
-                className={[
-                  "h-9 w-9 rounded-full grid place-items-center text-sm font-semibold border",
-                  done
-                    ? "bg-brand-surface text-brand-sub border-brand-line"
-                    : active
-                    ? "bg-brand-purple text-white border-white/10"
-                    : "bg-white/5 text-white/60 border-white/10",
-                ].join(" ")}
-              >
-                {it.n}
-              </div>
-              <div className="hidden sm:block text-xs text-white/70">{it.label}</div>
 
-              {idx < items.length - 1 && (
-                <div className="hidden sm:block w-16 md:w-24 h-px bg-white/10" />
-              )}
+          return (
+            <div key={it.n} className="flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={[
+                      "h-9 w-9 rounded-full grid place-items-center text-sm font-semibold border",
+                      done
+                        ? "bg-brand-yellow text-brand-ink border-brand-line"
+                        : active
+                        ? "bg-brand-purple text-white border-brand-line"
+                        : "bg-brand-surface text-brand-sub border-brand-line",
+                    ].join(" ")}
+                  >
+                    {it.n}
+                  </div>
+                  <div className="text-xs text-brand-sub hidden sm:block">{it.label}</div>
+                </div>
+
+                {idx < items.length - 1 && (
+                  <div className="hidden sm:block flex-1 mx-4 h-px bg-brand-line" />
+                )}
+              </div>
             </div>
           );
         })}
@@ -132,12 +130,12 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
 function Row({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="h-9 w-9 rounded-full bg-white/5 border border-white/10 grid place-items-center">
+      <div className="h-9 w-9 rounded-full bg-brand-muted border border-brand-line grid place-items-center">
         {icon}
       </div>
       <div>
-        <div className="text-xs font-semibold text-white/80">{title}</div>
-        <div className="text-xs text-white/60 mt-0.5">{text}</div>
+        <div className="text-xs font-semibold text-brand-ink">{title}</div>
+        <div className="text-xs text-brand-sub mt-0.5">{text}</div>
       </div>
     </div>
   );
