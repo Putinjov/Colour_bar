@@ -14,7 +14,7 @@ export default function AppShell() {
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl2 bg-brand-yellow text-brand-ink grid place-items-center font-black">CB</div>
               <div>
-                <div className="text-xl font-extrabold leading-tight">Colour Bar</div>
+                <div className="text-xl font-extrabold leading-tight">ColourLab</div>
                 <div className="text-xs text-white/70">Онлайн запис</div>
               </div>
             </div>
@@ -32,7 +32,7 @@ export default function AppShell() {
         <Outlet />
 
         <footer className="mt-6 text-center text-[11px] text-white/50">
-          💛💜 Colour Bar • Dublin time • 1 майстер
+          💛💜 ColourLab • Dublin time • 1 майстер
         </footer>
       </div>
     </div>
