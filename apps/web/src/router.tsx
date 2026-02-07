@@ -1,7 +1,7 @@
 import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppShell from "./ui/AppShell";
-import Home from "./views/Home";
+import Landing from "./views/Landing";
 import Services from "./views/Services";
 import DateTime from "./views/DateTime";
 import Details from "./views/Details";
@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
     path: "/",
     element: <AppShell />,
     children: [
-      { index: true, element: <Home /> },
+      { index: true, element: <Landing /> },
       { path: "services", element: <Services /> },
       { path: "datetime", element: <DateTime /> },
       { path: "details", element: <Details /> },
