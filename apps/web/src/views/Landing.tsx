@@ -89,25 +89,6 @@ export default function Landing() {
 
   return (
     <div className="space-y-12">
-      {/* top nav like screenshot (landing only) */}
-      <div className="hidden md:flex items-center justify-end gap-6">
-        <button className="text-sm text-brand-sub hover:text-brand-ink" onClick={() => scrollToId("home")}>
-          {T.navHome}
-        </button>
-        <button className="text-sm text-brand-sub hover:text-brand-ink" onClick={() => scrollToId("services")}>
-          {T.navServices}
-        </button>
-        <button className="text-sm text-brand-sub hover:text-brand-ink" onClick={() => scrollToId("schedule")}>
-          {T.navSchedule}
-        </button>
-        <button
-          onClick={() => nav("/services")}
-          className="rounded-full bg-brand-ink text-white px-5 py-2 text-xs font-semibold hover:opacity-90 transition"
-        >
-          {T.bookNow}
-        </button>
-      </div>
-
       {/* HERO */}
       <section id="home" className="grid gap-10 md:grid-cols-2 md:items-center">
         <div>
