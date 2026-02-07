@@ -1,0 +1,24 @@
+import React from "react";
+import { createBrowserRouter } from "react-router-dom";
+import AppShell from "./ui/AppShell";
+import Home from "./views/Home";
+import Services from "./views/Services";
+import DateTime from "./views/DateTime";
+import Details from "./views/Details";
+import Success from "./views/Success";
+import Admin from "./views/Admin";
+
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <AppShell />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: "services", element: <Services /> },
+      { path: "datetime", element: <DateTime /> },
+      { path: "details", element: <Details /> },
+      { path: "success", element: <Success /> },
+      { path: "admin", element: <Admin /> },
+    ],
+  },
+]);

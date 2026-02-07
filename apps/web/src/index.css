@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --brand-yellow:#F6C445; --brand-purple:#6D28D9; }
+* { -webkit-tap-highlight-color: transparent; }
