@@ -10,7 +10,7 @@ export default function Landing() {
   useReveal();
 
   return (
-    <main className="w-full overflow-x-hidden">
+    <main className="w-full">
       <HeroSection />
       <ServicesSection />
       <AboutSection />

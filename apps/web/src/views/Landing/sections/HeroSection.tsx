@@ -11,7 +11,7 @@ export default function HeroSection() {
   const t = {
     badge: lang === "en" ? "Premium Hair Studio" : "Преміум Hair Studio",
     title: "Colour",
-    accent: "Bar",
+    accent: "Lab",
     text:
       lang === "en"
         ? "Where artistry meets science. Colouring, precision cuts, and restorative treatments."
