@@ -1,3 +1,4 @@
+/// <reference types="luxon" />
 import { DateTime } from "luxon";
 
 export type Slot = { startAt: string; endAt: string };

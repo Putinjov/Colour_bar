@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import catalogRouter from "./routes/catalog";
 import { DateTime } from "luxon";
-import { connectDb } from "./db.js";
+import mongoose from "mongoose";
 import { Booking, Service } from "./models.js";
 import { seedServicesIfEmpty } from "./seed.js";
 import { generateSlotsForDay } from "./slots.js";
@@ -12,7 +13,7 @@ dotenv.config();
 
 const PORT = Number(process.env.PORT ?? 4000);
 const MONGODB_URI = process.env.MONGODB_URI ?? "";
-const ADMIN_PIN = process.env.ADMIN_PIN ?? "1234";
+const ADMIN_PIN = process.env.ADMIN_PIN ?? "162009";
 const TIMEZONE = process.env.TIMEZONE ?? "Europe/Dublin";
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:5173";
 
@@ -23,7 +24,9 @@ if (!MONGODB_URI) {
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGIN }));
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
+app.use("/api/catalog", catalogRouter);
+
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
@@ -50,7 +53,7 @@ app.get("/api/slots", async (req, res) => {
   if (!svc) return res.status(404).send("Service not found");
 
   // Default schedule
-  const stepMin = 15;
+  const stepMin = 30;
   const openHour = 10, openMinute = 0;
   const closeHour = 18, closeMinute = 0;
   const workWeekdays = [2,3,4,5,6]; // Tue..Sat
@@ -203,15 +206,24 @@ app.post("/api/admin/block", async (req, res) => {
 });
 
 async function main() {
-  await connectDb(MONGODB_URI);
-  await seedServicesIfEmpty();
+  console.log("➡️ connecting mongo");
+  await mongoose.connect(MONGODB_URI);
+  console.log("✅ mongo connected");
 
-  app.listen(PORT, () => {
-    console.log(`🚀 API on http://localhost:${PORT}`);
+  console.log("➡️ seeding");
+  await seedServicesIfEmpty();
+  console.log("✅ seed done");
+
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 API on http://127.0.0.1:${PORT}`);
+  });
+
+  server.on("error", (err: any) => {
+    console.error("❌ Listen error:", err?.message || err);
   });
 }
 
 main().catch((e) => {
-  console.error(e);
+  console.error("❌ Fatal:", e);
   process.exit(1);
 });
