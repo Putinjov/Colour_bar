@@ -7,6 +7,8 @@ import DateTime from "./views/DateTime";
 import Details from "./views/Details";
 import Success from "./views/Success";
 import Admin from "./views/Admin";
+import ServicesCatalog from "./views/ServicesCatalog";
+
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +21,8 @@ export const router = createBrowserRouter([
       { path: "details", element: <Details /> },
       { path: "success", element: <Success /> },
       { path: "admin", element: <Admin /> },
+      { path: "/services-catalog", element: <ServicesCatalog /> },
+
     ],
   },
 ]);

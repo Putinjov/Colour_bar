@@ -7,6 +7,7 @@ export default function ServiceCard({
   title,
   description,
   image,
+  target,
   icon,
   delay = 0,
   reveal = "",
@@ -15,6 +16,7 @@ export default function ServiceCard({
   description: string;
   image: string;
   icon: React.ReactNode;
+  target: "colouring" | "haircuts" | "repair";
   delay?: number;
   reveal?: Reveal;
 }) {
@@ -22,7 +24,7 @@ export default function ServiceCard({
 
   return (
     <button
-      onClick={() => nav("/services")}
+      onClick={() => nav("/services-catalog", { state: { target } })}
       data-reveal={reveal || undefined}
       data-delay={delay}
       className={[

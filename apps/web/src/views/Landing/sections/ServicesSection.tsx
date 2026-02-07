@@ -97,6 +97,7 @@ export default function ServicesSection() {
           icon={c.icon}
           reveal={c.reveal}
           delay={c.delay}
+          target={c.title === t.s1 ? "colouring" : c.title === t.s2 ? "haircuts" : "repair"}
         />
       ))}
     </div>
