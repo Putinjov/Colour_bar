@@ -49,7 +49,7 @@ export default function Services() {
       </div>
 
       <div className="mt-6">
-        <div className="text-xs font-semibold text-white/70">
+        <div className="text-xs font-semibold text-brand-ink/70">
           {lang === "en" ? "Service Category" : "Категорія"}
         </div>
 
@@ -90,11 +90,11 @@ export default function Services() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">{s.title}</div>
-                <div className="text-xs text-white/60 mt-1">{s.durationMin} min</div>
-                {s.description && <div className="text-xs text-white/60 mt-2">{s.description}</div>}
+                <div className="text-xs text-brand-ink/60 mt-1">{s.durationMin} min</div>
+                {s.description && <div className="text-xs text-brand-ink/60 mt-2">{s.description}</div>}
               </div>
               <div className="text-right">
-                <div className="text-[11px] text-white/60">price</div>
+                <div className="text-[11px] text-brand-ink/60">price</div>
                 <div className="text-sm font-semibold text-brand-yellow">
                   {typeof s.priceFrom === "number" ? `€${s.priceFrom}` : "—"}
                   {typeof s.priceTo === "number" ? `–€${s.priceTo}` : ""}
@@ -110,7 +110,7 @@ export default function Services() {
         <button
           onClick={() => nav("/datetime")}
           disabled={!draft.serviceId && list.length === 0}
-          className="rounded-full px-6 py-2 text-xs font-semibold bg-white/15 text-white/70 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="rounded-full px-6 py-2 text-xs font-semibold bg-white/15 text-brand-ink/70 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {lang === "en" ? "Continue" : "Продовжити"}
         </button>

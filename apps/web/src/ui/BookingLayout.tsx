@@ -15,7 +15,7 @@ export default function BookingLayout({
 
   return (
     <div className="space-y-6">
-      {/* Top heading like screenshot */}
+      {/* Top heading */}
       <div className="text-center">
         <div className="text-[11px] tracking-[0.18em] text-brand-yellow/90">
           {lang === "en" ? "BOOK ONLINE" : "ЗАПИС ОНЛАЙН"}
@@ -33,14 +33,14 @@ export default function BookingLayout({
       {/* 2-column layout (left main + right sidebar) */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr] items-start">
         {/* Main card */}
-        <div className="rounded-[24px] border border-white/10 bg-white/5 shadow-soft overflow-hidden">
+        <div className="rounded-[24px] border border-brand-line bg-brand-surface shadow-soft overflow-hidden">
           <Stepper step={step} />
           <div className="p-5 md:p-7">{children}</div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+          <div className="rounded-[24px] border border-brand-line bg-brand-surface p-5 shadow-soft">
             <div className="text-sm font-semibold">{lang === "en" ? "Visit Us" : "Контакти"}</div>
             <div className="mt-4 space-y-3 text-sm text-white/75">
               <Row
@@ -68,7 +68,7 @@ export default function BookingLayout({
             </button>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-black/35 p-5">
+          <div className="rounded-[24px] bg-brand-ink text-white p-6 shadow-soft">
             <div className="text-sm font-semibold text-white">
               {lang === "en" ? "Cancellation Policy" : "Правила скасування"}
             </div>
@@ -97,7 +97,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
   ];
 
   return (
-    <div className="px-5 md:px-7 py-4 border-b border-white/10 bg-white/3">
+    <div className="px-5 md:px-7 py-4 border-b border-brand-line bg-brand-muted">
       <div className="flex items-center justify-center gap-4 md:gap-8">
         {items.map((it, idx) => {
           const active = step === it.n;
@@ -108,7 +108,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
                 className={[
                   "h-9 w-9 rounded-full grid place-items-center text-sm font-semibold border",
                   done
-                    ? "bg-brand-yellow text-brand-ink border-white/10"
+                    ? "bg-brand-surface text-brand-sub border-brand-line"
                     : active
                     ? "bg-brand-purple text-white border-white/10"
                     : "bg-white/5 text-white/60 border-white/10",

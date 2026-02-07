@@ -42,7 +42,7 @@ export default function Details() {
   return (
     <Card>
       <div className="text-sm font-semibold">Дані клієнта</div>
-      <div className="mt-2 text-xs text-white/70">
+      <div className="mt-2 text-xs text-brand-ink/70">
         {draft.serviceTitle} • {format(when, "EEE dd/MM")} • {format(when, "HH:mm")}
       </div>
 
@@ -73,7 +73,7 @@ export default function Details() {
         })}
       >
         <label className="block">
-          <div className="text-xs text-white/70 mb-1">Ім’я</div>
+          <div className="text-xs text-brand-ink/70 mb-1">Ім’я</div>
           <input
             className="w-full rounded-xl2 bg-white/5 border border-white/10 px-3 py-3 text-sm outline-none focus:border-brand-yellow"
             {...register("clientName")}
@@ -82,7 +82,7 @@ export default function Details() {
         </label>
 
         <label className="block">
-          <div className="text-xs text-white/70 mb-1">Телефон</div>
+          <div className="text-xs text-brand-ink/70 mb-1">Телефон</div>
           <input
             className="w-full rounded-xl2 bg-white/5 border border-white/10 px-3 py-3 text-sm outline-none focus:border-brand-yellow"
             {...register("phone")}
@@ -91,7 +91,7 @@ export default function Details() {
         </label>
 
         <label className="block">
-          <div className="text-xs text-white/70 mb-1">Коментар (опц.)</div>
+          <div className="text-xs text-brand-ink/70 mb-1">Коментар (опц.)</div>
           <textarea
             className="w-full rounded-xl2 bg-white/5 border border-white/10 px-3 py-3 text-sm outline-none focus:border-brand-yellow min-h-[90px]"
             {...register("notes")}
