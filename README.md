@@ -3,20 +3,6 @@
 Mobile-first booking app for a beauty salon (single master).
 Palette: yellow/purple. Timezone: Europe/Dublin.
 
-## Quick start
-```bash
-npm install
-cp apps/api/.env.example apps/api/.env
-# edit apps/api/.env (set MONGODB_URI)
-npm run dev
-```
-
-- Web: http://localhost:5173
-- API: http://localhost:4000
-
-## MongoDB (IMPORTANT)
-Do NOT commit real passwords. Use `.env` locally, and set secrets in your hosting provider.
-
 ## Default settings
 - Work days: Tue–Sat
 - Hours: 10:00–18:00
