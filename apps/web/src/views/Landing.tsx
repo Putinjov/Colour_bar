@@ -31,7 +31,7 @@ export default function Landing() {
   const T = {
     badge: lang === "en" ? "Premium Hair Studio" : "Преміум hair studio",
     heroTitleA: lang === "en" ? "Colour" : "Colour",
-    heroTitleB: lang === "en" ? "Bar" : "Bar",
+    heroTitleB: lang === "en" ? "Lab" : "Lab",
     heroText:
       lang === "en"
         ? "Where artistry meets science. Transformative colouring, precision cuts, and restorative treatments."

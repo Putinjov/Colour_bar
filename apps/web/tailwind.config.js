@@ -7,13 +7,21 @@ export default {
         brand: {
           yellow: "#F6C445",
           purple: "#6D28D9",
-          ink: "#0B0B12",
-          paper: "#0F1020",
+
+          bg: "#F7F4EF",        // головний фон
+          surface: "#FFFFFF",   // картки
+          muted: "#F1EEE8",     // секції/підкладки
+          ink: "#14121A",       // текст
+          sub: "#6B6676",       // secondary text
+          line: "rgba(20,18,26,0.10)", // бордери
         },
       },
       borderRadius: { xl2: "1.25rem" },
-      boxShadow: { soft: "0 10px 30px rgba(0,0,0,0.35)" },
+      boxShadow: {
+        soft: "0 18px 45px rgba(20,18,26,0.10)",
+      },
     },
   },
   plugins: [],
 };
+
