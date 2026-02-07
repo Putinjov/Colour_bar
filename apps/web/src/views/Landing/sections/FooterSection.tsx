@@ -10,7 +10,7 @@ export default function FooterSection() {
 
   return (
     <section
-      className="w-screen snap-start"
+      className="w-screen "
       style={{ background: "#F3EEE6" }}
     >
       <Center>

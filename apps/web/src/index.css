@@ -11,7 +11,8 @@ html, body {
   background: #F7F4EF;
   color: #13121a;
 }
-html { scroll-behavior: smooth; }
+html {  scroll-behavior: smooth;
+        scroll-padding-top: 88px; }
 
 * { -webkit-tap-highlight-color: transparent; }
 /* reveal animations (scroll) */
@@ -21,6 +22,8 @@ html { scroll-behavior: smooth; }
   transition: opacity 700ms ease, transform 700ms ease;
   will-change: opacity, transform;
 }
+
+
 
 [data-reveal].in {
   opacity: 1;

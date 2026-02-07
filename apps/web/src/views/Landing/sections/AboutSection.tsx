@@ -19,7 +19,7 @@ export default function AboutSection() {
 
   return (
     <section
-      className="min-h-dvh w-screen snap-start flex items-center"
+      className="w-screen py-16 md:py-20"
       style={{
         background:
           "linear-gradient(135deg, rgba(109,40,217,0.08), transparent 50%)," +

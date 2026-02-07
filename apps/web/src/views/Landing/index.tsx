@@ -10,7 +10,7 @@ export default function Landing() {
   useReveal();
 
   return (
-    <main className="w-full overflow-x-hidden snap-y snap-mandatory">
+    <main className="w-full overflow-x-hidden">
       <HeroSection />
       <ServicesSection />
       <AboutSection />

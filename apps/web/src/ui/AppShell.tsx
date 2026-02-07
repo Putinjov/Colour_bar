@@ -29,7 +29,7 @@ export default function AppShell() {
   }
 
   const HeaderInner = (
-    <div className="mx-auto max-w-6xl px-4 flex items-center justify-between gap-4">
+    <div className="mx-auto max-w-7xl px-4 flex items-center justify-between gap-4">
       {/* Logo */}
       <button onClick={() => nav("/")} className="select-none" aria-label="Go home">
         <div className="text-lg font-medium tracking-tight">
@@ -88,7 +88,13 @@ export default function AppShell() {
   return (
     <div className="min-h-dvh bg-brand-bg text-brand-ink overflow-x-hidden">
       {/* Header: full width, inner centered */}
-      <header className="pt-5 pb-4">{HeaderInner}</header>
+      <header className="sticky top-0 z-50">
+  {/* background layer */}
+  <div className="bg-brand-bg/80 backdrop-blur supports-[backdrop-filter]:bg-brand-bg/70 border-b border-brand-line">
+    <div className="py-4">{HeaderInner}</div>
+  </div>
+</header>
+
 
       {/* ✅ Landing: full width. Other pages: centered container */}
       {onLanding ? (

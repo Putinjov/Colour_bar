@@ -11,10 +11,10 @@ export default function CtaSection() {
   return (
     <section
       id="schedule"
-      className="min-h-dvh w-screen snap-start"
+      className="w-screen snap-start"
       style={{ background: "#0F0F12" }}
     >
-      <div className="min-h-dvh flex items-center">
+      <div className="flex items-center">
         <Center>
           <div className="grid gap-10 md:grid-cols-2 md:items-center py-16">
             {/* Left */}
