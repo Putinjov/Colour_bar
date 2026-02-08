@@ -1,27 +1,8 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useI18n } from "../i18n";
-import catalog from "../data/services.catalog.json";
-
-type Lang = "en" | "uk";
-type ServiceKey = "colouring" | "haircuts" | "repair";
-
-type Catalog = {
-  blocks: Array<{
-    key: ServiceKey;
-    pill: Record<Lang, string>;
-    title: Record<Lang, string>;
-    description: Record<Lang, string>;
-    cta: Record<Lang, string>;
-    image: string;
-    items: Array<{
-      title: Record<Lang, string>;
-      priceFrom: number;
-      duration: string;
-      bullets: Record<Lang, string[]>;
-    }>;
-  }>;
-};
+import { getCatalog, type Catalog, type Lang, type ServiceKey } from "../api/catalog";
 
 function scrollToTarget(id: string) {
   const el = document.getElementById(id);
@@ -31,26 +12,59 @@ function scrollToTarget(id: string) {
 
 export default function ServicesCatalog() {
   const nav = useNavigate();
-  const { lang } = useI18n();
   const loc = useLocation();
+  const { lang } = useI18n();
+  const L = (lang === "en" ? "en" : "uk") as Lang;
 
-  const data = catalog as Catalog;
+  const { data, isLoading, error } = useQuery<Catalog>({
+    queryKey: ["catalog"],
+    queryFn: getCatalog,
+  });
 
+  // ✅ авто-скрол на секцію після завантаження каталогу
   useEffect(() => {
+    if (!data) return;
+
     const state = (loc.state || {}) as { target?: ServiceKey };
     const targetFromState = state.target;
 
     const hash = (loc.hash || "").replace("#", "") as ServiceKey | "";
     const target = targetFromState || (hash ? hash : undefined);
 
-    if (target) setTimeout(() => scrollToTarget(target), 80);
-    else window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [loc.hash, loc.state]);
+    if (target) {
+      setTimeout(() => scrollToTarget(target), 80);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [data, loc.state, loc.hash]);
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-12 text-brand-sub">
+        Loading…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-12 text-red-600">
+        {String((error as any)?.message || error)}
+      </div>
+    );
+  }
+
+  if (!data) return null;
 
   return (
-    <div className="mx-auto  px-4 pb-16">
+    <div className="mx-auto max-w-6xl px-4 pb-16">
       {data.blocks.map((b) => (
-        <section key={b.key} id={b.key} className="pt-10 md:pt-14 scroll-mt-[96px]">
+        <section
+          key={b.key}
+          id={b.key}
+          className="pt-10 md:pt-14 scroll-mt-[96px]"
+        >
+          {/* HERO like screenshot */}
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
               <div className="flex items-center gap-3">
@@ -58,25 +72,38 @@ export default function ServicesCatalog() {
                   ✨
                 </div>
                 <div className="text-xs tracking-[0.18em] text-brand-yellow font-semibold">
-                  {b.pill[lang as Lang]}
+                  {b.pill[L]}
                 </div>
               </div>
 
               <h2 className="mt-6 text-3xl md:text-5xl font-light text-brand-ink leading-tight">
-                {b.title[lang as Lang]}
+                {b.title[L]}
               </h2>
 
               <p className="mt-4 text-sm md:text-base text-brand-sub max-w-xl">
-                {b.description[lang as Lang]}
+                {b.description[L]}
               </p>
 
-              <div className="mt-7">
+              <div className="mt-7 flex flex-wrap gap-3">
+                {/* CTA: відкриває booking сторінку без прив’язки до конкретної процедури */}
                 <button
                   onClick={() => nav("/services")}
                   className="inline-flex items-center gap-3 rounded-full bg-brand-ink text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition"
                 >
-                  {b.cta[lang as Lang]}
+                  {b.cta[L]}
                   <span className="text-lg">→</span>
+                </button>
+
+                {/* Якір на процедури */}
+                <button
+                  onClick={() =>
+                    document
+                      .getElementById(`grid-${b.key}`)
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                  className="inline-flex items-center gap-3 rounded-full border border-brand-line bg-brand-surface px-6 py-3 text-sm font-semibold hover:bg-brand-muted transition"
+                >
+                  {lang === "en" ? "See procedures" : "Переглянути процедури"}
                 </button>
               </div>
             </div>
@@ -85,40 +112,75 @@ export default function ServicesCatalog() {
               <div className="rounded-[22px] overflow-hidden border border-brand-line shadow-soft bg-brand-surface">
                 <img
                   src={b.image}
-                  alt={b.pill[lang as Lang]}
+                  alt={b.pill[L]}
                   className="w-full h-[260px] md:h-[360px] object-cover"
                 />
               </div>
             </div>
           </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {b.items.map((it) => (
-              <div key={it.title.en} className="rounded-[18px] bg-white border border-brand-line shadow-soft p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="text-lg font-semibold text-brand-ink">
-                    {it.title[lang as Lang]}
-                  </div>
-                  <div className="text-sm font-semibold text-brand-yellow whitespace-nowrap">
-                    {lang === "en" ? `from €${it.priceFrom}` : `від €${it.priceFrom}`}
-                  </div>
-                </div>
+          {/* PROCEDURES GRID */}
+          <div id={`grid-${b.key}`} className="mt-10 grid gap-6 md:grid-cols-3 scroll-mt-[96px]">
+            {b.items.map((it) => {
+              const canBook = Boolean(it.serviceId);
 
-                <div className="mt-4 flex items-center gap-2 text-xs text-brand-sub">
-                  <span>🕒</span>
-                  <span>{it.duration}</span>
-                </div>
-
-                <div className="mt-5 space-y-2">
-                  {it.bullets[lang as Lang].map((btxt) => (
-                    <div key={btxt} className="flex items-start gap-2 text-sm text-brand-sub">
-                      <span className="mt-[3px] text-brand-yellow">✓</span>
-                      <span>{btxt}</span>
+              return (
+                <div
+                  key={`${b.key}-${it.title.en}`}
+                  className="rounded-[18px] bg-white border border-brand-line shadow-soft p-6"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="text-lg font-semibold text-brand-ink">
+                      {it.title[L]}
                     </div>
-                  ))}
+                    <div className="text-sm font-semibold text-brand-yellow whitespace-nowrap">
+                      {lang === "en" ? `from €${it.priceFrom}` : `від €${it.priceFrom}`}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-2 text-xs text-brand-sub">
+                    <span>🕒</span>
+                    <span>{it.duration}</span>
+                  </div>
+
+                  <div className="mt-5 space-y-2">
+                    {it.bullets[L].map((btxt) => (
+                      <div
+                        key={btxt}
+                        className="flex items-start gap-2 text-sm text-brand-sub"
+                      >
+                        <span className="mt-[3px] text-brand-yellow">✓</span>
+                        <span>{btxt}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-between gap-3">
+                    <button
+                      disabled={!canBook}
+                      onClick={() => {
+                        if (!it.serviceId) return;
+                        nav("/services", { state: { serviceId: it.serviceId } });
+                      }}
+                      className={[
+                        "rounded-full px-5 py-2 text-xs font-semibold transition",
+                        canBook
+                          ? "bg-brand-ink text-white hover:opacity-90"
+                          : "bg-brand-muted text-brand-sub cursor-not-allowed",
+                      ].join(" ")}
+                    >
+                      {lang === "en" ? "Book this" : "Записатись"}
+                    </button>
+
+                    {!canBook && (
+                      <span className="text-[11px] text-brand-sub">
+                        {lang === "en" ? "Not linked yet" : "Ще не привʼязано"}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-14 border-t border-brand-line" />

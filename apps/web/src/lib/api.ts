@@ -18,7 +18,8 @@ export type BookingCreate = {
   notes?: string;
 };
 
-const API = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+// ✅ використовуємо відносний базовий URL (через Vite proxy)
+const API = "";
 const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN ?? "";
 
 async function okJson(r: Response) {
@@ -32,7 +33,9 @@ export async function getServices(): Promise<Service[]> {
 }
 
 export async function getSlots(serviceId: string, dateISO: string): Promise<Slot[]> {
-  const r = await fetch(`${API}/api/slots?serviceId=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(dateISO)}`);
+  const r = await fetch(
+    `${API}/api/slots?serviceId=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(dateISO)}`
+  );
   return okJson(r);
 }
 

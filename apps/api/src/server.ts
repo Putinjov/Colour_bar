@@ -215,7 +215,7 @@ async function main() {
   console.log("✅ seed done");
 
   const server = app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 API on http://127.0.0.1:${PORT}`);
+    console.log(`🚀 API on http://localhost:${PORT}`);
   });
 
   server.on("error", (err: any) => {
