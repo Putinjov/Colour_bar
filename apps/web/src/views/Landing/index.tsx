@@ -2,9 +2,9 @@ import React from "react";
 import { useReveal } from "../../hooks/useReveal";
 import HeroSection from "./sections/HeroSection";
 import AboutSection from "./sections/AboutSection";
-import ServicesSection from "./sections/ServicesSection";
 import CtaSection from "./sections/CtaSection";
 import FooterSection from "./sections/FooterSection";
+import ServicesSection from "./sections/ServicesSection";
 
 export default function Landing() {
   useReveal();
@@ -12,7 +12,7 @@ export default function Landing() {
   return (
     <main className="w-full">
       <HeroSection />
-      <ServicesSection />
+      <ServicesSection/>
       <AboutSection />
       <CtaSection />
       <FooterSection />

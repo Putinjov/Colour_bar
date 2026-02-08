@@ -156,27 +156,6 @@ export default function ServicesCatalog() {
                   </div>
 
                   <div className="mt-6 flex items-center justify-between gap-3">
-                    <button
-                      disabled={!canBook}
-                      onClick={() => {
-                        if (!it.serviceId) return;
-                        nav("/services", { state: { serviceId: it.serviceId } });
-                      }}
-                      className={[
-                        "rounded-full px-5 py-2 text-xs font-semibold transition",
-                        canBook
-                          ? "bg-brand-ink text-white hover:opacity-90"
-                          : "bg-brand-muted text-brand-sub cursor-not-allowed",
-                      ].join(" ")}
-                    >
-                      {lang === "en" ? "Book this" : "Записатись"}
-                    </button>
-
-                    {!canBook && (
-                      <span className="text-[11px] text-brand-sub">
-                        {lang === "en" ? "Not linked yet" : "Ще не привʼязано"}
-                      </span>
-                    )}
                   </div>
                 </div>
               );
