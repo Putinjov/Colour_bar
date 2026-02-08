@@ -1,0 +1,127 @@
+{
+    "blocks": [
+        {
+            "key": "colouring",
+            "pill": { "en": "HAIR COLOURING", "uk": "ФАРБУВАННЯ" },
+            "title": {
+                "en": "Transform Your Look with Expert Colour Techniques",
+                "uk": "Змініть образ з професійними техніками фарбування"
+            },
+            "description": {
+                "en": "Premium techniques and products for personalised colour results — from subtle highlights to bold transformations.",
+                "uk": "Преміальні техніки та матеріали для персонального результату — від делікатних висвітлень до сміливих змін."
+            },
+            "cta": { "en": "Book Hair Colouring", "uk": "Запис на фарбування" },
+            "image": "https://images.unsplash.com/photo-1522338140262-f46f5913618a?auto=format&fit=crop&w=1600&q=80",
+            "items": [
+                {
+                    "title": { "en": "AirTouch", "uk": "AirTouch" },
+                    "priceFrom": 250,
+                    "duration": "3–4 hours",
+                    "bullets": {
+                        "en": ["Natural gradient", "Low maintenance", "Minimal damage", "Long-lasting results"],
+                        "uk": ["Натуральний градієнт", "Мінімальний догляд", "Делікатно для волосся", "Стійкий результат"]
+                    }
+                },
+                {
+                    "title": { "en": "Brazilian Blonde", "uk": "Brazilian Blonde" },
+                    "priceFrom": 200,
+                    "duration": "2–3 hours",
+                    "bullets": {
+                        "en": ["Warm tones", "Full coverage", "Customisable shades", "Includes toner"],
+                        "uk": ["Теплі відтінки", "Повне покриття", "Підбір під вас", "Тонування включено"]
+                    }
+                },
+                {
+                    "title": { "en": "Shatush", "uk": "Shatush" },
+                    "priceFrom": 180,
+                    "duration": "2–3 hours",
+                    "bullets": {
+                        "en": ["Soft transition", "No harsh lines", "Face-framing", "Grow-out friendly"],
+                        "uk": ["М’який перехід", "Без різких ліній", "Акцент біля обличчя", "Гарно відростає"]
+                    }
+                }
+            ]
+        },
+        {
+            "key": "haircuts",
+            "pill": { "en": "HAIRCUTS", "uk": "СТРИЖКИ" },
+            "title": { "en": "Precision Haircuts for Every Style", "uk": "Точні стрижки під будь-який стиль" },
+            "description": {
+                "en": "Men’s, women’s and kids’ cuts with consultation, shape selection and clean finish.",
+                "uk": "Чоловічі, жіночі та дитячі стрижки з консультацією, підбором форми та чистим фінішем."
+            },
+            "cta": { "en": "Book Haircut", "uk": "Запис на стрижку" },
+            "image": "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1600&q=80",
+            "items": [
+                {
+                    "title": { "en": "Men’s haircut", "uk": "Чоловіча стрижка" },
+                    "priceFrom": 25,
+                    "duration": "30–45 min",
+                    "bullets": {
+                        "en": ["Fade / classic", "Beard line optional", "Wash optional"],
+                        "uk": ["Fade / класика", "Окантовка бороди (за бажанням)", "Миття (за бажанням)"]
+                    }
+                },
+                {
+                    "title": { "en": "Women’s haircut", "uk": "Жіноча стрижка" },
+                    "priceFrom": 35,
+                    "duration": "45–60 min",
+                    "bullets": {
+                        "en": ["Consultation", "Shape + texture", "Styling"],
+                        "uk": ["Консультація", "Форма + текстура", "Укладка"]
+                    }
+                },
+                {
+                    "title": { "en": "Kids haircut", "uk": "Дитяча стрижка" },
+                    "priceFrom": 20,
+                    "duration": "20–35 min",
+                    "bullets": {
+                        "en": ["Gentle approach", "Fast & neat", "Parent-friendly"],
+                        "uk": ["Делікатний підхід", "Швидко й акуратно", "Комфортно з батьками"]
+                    }
+                }
+            ]
+        },
+        {
+            "key": "repair",
+            "pill": { "en": "HAIR REPAIR", "uk": "ВІДНОВЛЕННЯ" },
+            "title": { "en": "Repair & Restore Hair Health", "uk": "Відновлення та здоров’я волосся" },
+            "description": {
+                "en": "Restorative treatments to bring shine, softness and strength back to hair.",
+                "uk": "Відновлювальні процедури для блиску, м’якості та зміцнення волосся."
+            },
+            "cta": { "en": "Book Repair", "uk": "Запис на відновлення" },
+            "image": "https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1600&q=80",
+            "items": [
+                {
+                    "title": { "en": "Deep hydration", "uk": "Глибоке зволоження" },
+                    "priceFrom": 60,
+                    "duration": "45–60 min",
+                    "bullets": {
+                        "en": ["Dry hair rescue", "Softness", "Anti-frizz"],
+                        "uk": ["Для сухого волосся", "М’якість", "Анти-пухнастість"]
+                    }
+                },
+                {
+                    "title": { "en": "Bond repair", "uk": "Відновлення зв’язків (bond)" },
+                    "priceFrom": 80,
+                    "duration": "60–90 min",
+                    "bullets": {
+                        "en": ["Strengthening", "Damage care", "Better elasticity"],
+                        "uk": ["Зміцнення", "Догляд після пошкоджень", "Краща еластичність"]
+                    }
+                },
+                {
+                    "title": { "en": "Scalp care", "uk": "Догляд за шкірою голови" },
+                    "priceFrom": 50,
+                    "duration": "30–45 min",
+                    "bullets": {
+                        "en": ["Comfort", "Clean scalp", "Healthy growth base"],
+                        "uk": ["Комфорт", "Очищення", "Основа для здорового росту"]
+                    }
+                }
+            ]
+        }
+    ]
+}

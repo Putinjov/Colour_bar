@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Catalog } from "../models/catalog.js";
-import seed from "../seed/service.catalog.json";
+import seed from "../seed/service.catalog.json" with { type: "json" };
 
 const router = Router();
 
