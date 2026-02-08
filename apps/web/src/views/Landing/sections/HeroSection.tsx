@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useI18n } from "../../../i18n";
-import Center from "../components/Center";
-import { Button } from "../../../ui/Button";
+import { useI18n } from "../../../i18n.js";
+import Center from "../components/Center.js";
+import { Button } from "../../../ui/Button.js";
 
 export default function HeroSection() {
   const nav = useNavigate();

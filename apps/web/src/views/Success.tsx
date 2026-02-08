@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { loadDraft, clearDraft } from "../lib/storage";
+import { Card } from "../ui/Card.js";
+import { Button } from "../ui/Button.js";
+import { loadDraft, clearDraft } from "../lib/storage.js";
 import { format } from "date-fns";
 
 export default function Success() {

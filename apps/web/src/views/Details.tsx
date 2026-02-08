@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import BookingLayout from "../ui/BookingLayout";
-import { loadDraft, saveDraft, clearDraft } from "../lib/storage";
-import { createBooking } from "../lib/api";
-import { useI18n } from "../i18n";
+import BookingLayout from "../ui/BookingLayout.js";
+import { loadDraft, saveDraft, clearDraft } from "../lib/storage.js";
+import { createBooking } from "../lib/api.js";
+import { useI18n } from "../i18n.js";
 
 const schema = z.object({
   clientName: z.string().min(2).max(60),

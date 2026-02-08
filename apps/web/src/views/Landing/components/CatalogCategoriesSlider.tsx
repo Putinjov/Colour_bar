@@ -6,8 +6,8 @@ import { A11y, Autoplay } from "swiper/modules";
 
 import "swiper/css";
 
-import { getCatalog, type Catalog, type Lang } from "../../../api/catalog";
-import { useI18n } from "../../../i18n";
+import { getCatalog, type Catalog, type Lang } from "../../../api/catalog.js";
+import { useI18n } from "../../../i18n.js";
 
 type Slide = {
   key: string;

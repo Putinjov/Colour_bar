@@ -1,7 +1,7 @@
 import React from "react";
-import { useI18n } from "../../../i18n";
-import Center from "../components/Center";
-import SocialIcon from "../components/SocialIcon";
+import { useI18n } from "../../../i18n.js";
+import Center from "../components/Center.js";
+import SocialIcon from "../components/SocialIcon.js";
 import { FaInstagram, FaTiktok, FaFacebookF } from "react-icons/fa";
 
 

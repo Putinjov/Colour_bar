@@ -1,14 +1,14 @@
 import React from "react";
 import { createBrowserRouter } from "react-router-dom";
-import AppShell from "./ui/AppShell";
-import Landing from "./views/Landing/index";
-import Services from "./views/Services";
-import DateTime from "./views/DateTime";
-import Details from "./views/Details";
-import Success from "./views/Success";
-import Admin from "./views/Admin";
-import ServicesCatalog from "./views/ServicesCatalog";
-import AdminCatalog from "./views/admin/AdminCatalog";
+import AppShell from "./ui/AppShell.js";
+import Landing from "./views/Landing/index.js";
+import Services from "./views/Services.js";
+import DateTime from "./views/DateTime.js";
+import Details from "./views/Details.js";
+import Success from "./views/Success.js";
+import Admin from "./views/Admin.js";
+import ServicesCatalog from "./views/ServicesCatalog.js";
+import AdminCatalog from "./views/admin/AdminCatalog.js";
 
 
 export const router = createBrowserRouter([

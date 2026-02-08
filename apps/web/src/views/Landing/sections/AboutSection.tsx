@@ -1,6 +1,6 @@
 import React from "react";
-import { useI18n } from "../../../i18n";
-import Center from "../components/Center";
+import { useI18n } from "../../../i18n.js";
+import Center from "../components/Center.js";
 
 export default function AboutSection() {
   const { lang } = useI18n();

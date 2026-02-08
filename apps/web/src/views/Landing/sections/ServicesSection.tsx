@@ -1,8 +1,8 @@
 import React from "react";
-import { useI18n } from "../../../i18n";
-import Center from "../components/Center";
-import ServiceCard from "../components/ServiceCard";
-import CatalogCategoriesSliderMarquee from "../components/CatalogCategoriesSlider";
+import { useI18n } from "../../../i18n.js";
+import Center from "../components/Center.js";
+import ServiceCard from "../components/ServiceCard.js";
+import CatalogCategoriesSliderMarquee from "../components/CatalogCategoriesSlider.js";
 
 export default function ServicesSection() {
   const { lang } = useI18n();

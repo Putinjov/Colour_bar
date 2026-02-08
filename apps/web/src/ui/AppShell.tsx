@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useI18n } from "../i18n";
+import { useI18n } from "../i18n.js";
 
 function scrollToId(id: string) {
   const el = document.getElementById(id);

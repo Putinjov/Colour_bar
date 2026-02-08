@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCatalog, updateCatalog, resetCatalog, type Catalog, type Lang } from "../../api/catalog";
-import { getServices, type ServiceDTO } from "../../api/services";
-import { useI18n } from "../../i18n";
+import { getCatalog, updateCatalog, resetCatalog, type Catalog, type Lang } from "../../api/catalog.js";
+import { getServices, type ServiceDTO } from "../../api/services.js";
+import { useI18n } from "../../i18n.js";
 
 function Input({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (

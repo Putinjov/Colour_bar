@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useI18n } from "../../../i18n";
-import Center from "../components/Center";
-import DarkInfoCard from "../components/DarkInfoCard";
+import { useI18n } from "../../../i18n.js";
+import Center from "../components/Center.js";
+import DarkInfoCard from "../components/DarkInfoCard.js";
 
 export default function CtaSection() {
   const nav = useNavigate();

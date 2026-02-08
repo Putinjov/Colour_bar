@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { adminListBookings } from "../lib/api";
+import { Card } from "../ui/Card.js";
+import { Button } from "../ui/Button.js";
+import { adminListBookings } from "../lib/api.js";
 import { format } from "date-fns";
 
 export default function Admin() {

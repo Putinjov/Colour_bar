@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import catalogRouter from "./routes/catalog";
+import catalogRouter from "./routes/catalog.js";
 import { DateTime } from "luxon";
 import mongoose from "mongoose";
 import { Booking, Service } from "./models.js";

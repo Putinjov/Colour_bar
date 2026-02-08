@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useI18n } from "../i18n";
-import { getCatalog, type Catalog, type Lang, type ServiceKey } from "../api/catalog";
+import { useI18n } from "../i18n.js";
+import { getCatalog, type Catalog, type Lang, type ServiceKey } from "../api/catalog.js";
 
 function scrollToTarget(id: string) {
   const el = document.getElementById(id);

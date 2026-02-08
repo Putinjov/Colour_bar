@@ -1,10 +1,10 @@
 import React from "react";
-import { I18nProvider } from "./i18n";
+import { I18nProvider } from "./i18n.js";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { router } from "./router";
-import { queryClient } from "./query";
+import { router } from "./router.js";
+import { queryClient } from "./query.js";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

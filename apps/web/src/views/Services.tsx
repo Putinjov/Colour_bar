@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import BookingLayout from "../ui/BookingLayout";
-import { getServices } from "../lib/api";
-import { loadDraft, saveDraft } from "../lib/storage";
-import { useI18n } from "../i18n";
+import BookingLayout from "../ui/BookingLayout.js";
+import { getServices } from "../lib/api.js";
+import { loadDraft, saveDraft } from "../lib/storage.js";
+import { useI18n } from "../i18n.js";
 
 const cats = [
   { key: "Фарбування", icon: "🎨", en: "Hair Colouring" },
