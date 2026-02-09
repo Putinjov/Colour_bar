@@ -36,12 +36,27 @@ export default function AppShell() {
         <div className="bg-brand-bg/85 backdrop-blur border-b border-brand-line">
           <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
             {/* Logo */}
-            <button onClick={() => nav("/")} className="select-none" aria-label="Go home">
-              <div className="text-lg font-medium tracking-tight">
-                <span className="text-brand-ink">Colour</span>
-                <span className="text-brand-yellow">Lab</span>
-              </div>
-            </button>
+            <button
+  onClick={() => nav("/")}
+  className="select-none flex items-center"
+  aria-label="Go home"
+>
+  {/* Desktop */}
+  <img
+    src="/branding/logo-full-outline.svg"
+    alt="Colour Lab"
+    className="hidden md:block h-12 w-auto"
+    draggable={false}
+  />
+
+  {/* Mobile */}
+  <img
+    src="/branding/logo-compact-outline.svg"
+    alt="Colour Lab"
+    className="block md:hidden h-9 w-auto"
+    draggable={false}
+  />
+</button>
 
             {/* Right */}
             <div className="flex items-center gap-3">

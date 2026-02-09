@@ -8,7 +8,7 @@ const dict: Dict = {
   "brand.tagline": { uk: "Онлайн запис", en: "Online booking" },
   "nav.back": { uk: "Назад", en: "Back" },
 
-  "landing.badge": { uk: "Colour Bar • Tullamore / Ireland", en: "Colour Bar • Tullamore / Ireland" },
+  "landing.badge": { uk: "ColourLab • Tullamore / Ireland", en: "ColourLab • Tullamore / Ireland" },
   "landing.title": { uk: "Салон краси", en: "Beauty salon" },
   "landing.subtitle": {
     uk: "Стрижки • Фарбування (AirTouch / Balayage / Ombre) • Відновлення волосся. Онлайн-запис за 30 секунд.",
@@ -35,7 +35,7 @@ const dict: Dict = {
   "service.repair": { uk: "Відновлення", en: "Repair" },
   "service.repair.text": { uk: "Botox/Keratin, Olaplex/Bonding, глибоке відновлення.", en: "Botox/Keratin, Olaplex/Bonding, deep repair." },
 
-  "section.why.title": { uk: "Чому Colour Bar", en: "Why Colour Bar" },
+  "section.why.title": { uk: "Чому ColourLab", en: "Why ColourLab" },
   "why.1": { uk: "Акуратна робота з кольором і здоров’ям волосся", en: "Careful work with colour & hair health" },
   "why.2": { uk: "Зручний онлайн-запис без дзвінків", en: "Easy online booking — no calls needed" },
   "why.3": { uk: "Прозора тривалість процедур та таймінг", en: "Clear timing & duration" },
