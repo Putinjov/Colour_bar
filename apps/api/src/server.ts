@@ -23,7 +23,7 @@ if (!MONGODB_URI) {
 }
 
 const app = express();
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use("/api/catalog", catalogRouter);
 
