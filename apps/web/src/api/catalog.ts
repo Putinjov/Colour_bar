@@ -1,4 +1,4 @@
-// apps/web/src/api/catalog.ts
+
 
 export type Lang = "en" | "uk";
 export type ServiceKey = "colouring" | "haircuts" | "repair";
