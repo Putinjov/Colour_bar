@@ -81,25 +81,25 @@ export default function FooterSection() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✉️</span>
-                  <span>hello@colourlab.ie</span>
+                  <span>motarivna@icloud.com</span>
                 </div>
               </div>
 
               <div className="mt-5 flex items-center gap-3">
                 <SocialIcon
-                  href="https://instagram.com/@hair_by_marina" // заміниш на реальний
+                  href="https://instagram.com/hair_by_marina_ie"
                   label="Instagram">
                     <FaInstagram size={18} />
                 </SocialIcon>
 
                 <SocialIcon
-                  href="https://tiktok.com/@colourbar"
+                  href="https://www.tiktok.com/@hair_by_marina"
                   label="TikTok">
                     <FaTiktok size={18} />
                 </SocialIcon>
 
                 <SocialIcon
-                  href="https://facebook.com/colourbar"
+                  href="https://facebook.com/"
                   label="Facebook">
                     <FaFacebookF size={18} />
                   </SocialIcon>
