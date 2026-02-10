@@ -19,7 +19,7 @@ if (!MONGODB_URI) {
     process.exit(1);
 }
 const app = express();
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use("/api/catalog", catalogRouter);
 app.get("/health", (_req, res) => res.json({ ok: true }));

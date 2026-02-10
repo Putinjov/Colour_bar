@@ -6,7 +6,7 @@ export default {
       colors: {
         brand: {
           yellow: "#F6C445",
-          purple: "#6D28D9",
+          purple: "#de90f6",
 
           bg: "#F7F4EF",        // головний фон
           surface: "#FFFFFF",   // картки
