@@ -8,6 +8,9 @@ import { Booking, Service } from "./models.js";
 import { seedServicesIfEmpty } from "./seed.js";
 import { generateSlotsForDay } from "./slots.js";
 import { bookingCreateSchema, adminBlockSchema } from "./validators.js";
+import adminAuthRouter from "./routes/adminAuth.js";
+import { requireAdminJWT } from "./auth.js";
+
 
 dotenv.config();
 
@@ -15,7 +18,6 @@ const PORT = Number(process.env.PORT ?? 4000);
 const MONGODB_URI = process.env.MONGODB_URI ?? "";
 const ADMIN_PIN = process.env.ADMIN_PIN ?? "162009";
 const TIMEZONE = process.env.TIMEZONE ?? "Europe/Dublin";
-const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:5173";
 
 if (!MONGODB_URI) {
   console.error("❌ MONGODB_URI is missing. Create apps/api/.env from .env.example");
@@ -23,9 +25,11 @@ if (!MONGODB_URI) {
 }
 
 const app = express();
-app.use(cors());
-app.use(express.json({ limit: "2mb" }));
-app.use("/api/catalog", catalogRouter);
+app.use(cors()); // Enable CORS for all origins (adjust in production)
+app.use(express.json({ limit: "2mb" })); // for parsing application/json
+app.use("/api/catalog", catalogRouter); // Catalog routes (services list)
+app.use("/api/admin", adminAuthRouter); // Admin auth routes (login)
+
 
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -149,8 +153,7 @@ function requireAdmin(req: express.Request, res: express.Response): boolean {
   return true;
 }
 
-app.get("/api/admin/bookings", async (req, res) => {
-  if (!requireAdmin(req, res)) return;
+app.get("/api/admin/bookings", requireAdminJWT, async (req, res) => {
 
   const date = String(req.query.date ?? "");
   if (!date) return res.status(400).send("date is required (YYYY-MM-DD)");
@@ -163,20 +166,49 @@ app.get("/api/admin/bookings", async (req, res) => {
     endAt: { $gte: dayStart },
   }).sort({ startAt: 1 }).lean();
 
-  res.json(items.map(b => ({
+  /*const items = await Booking.find({
+  startAt: { $lte: dayEnd },
+  endAt: { $gte: dayStart },
+}).sort({ startAt: 1 }).lean();*/
+
+// підтягуємо сервіси одним запитом
+const serviceIds = Array.from(
+  new Set(items.map(b => b.serviceId ? String(b.serviceId) : "").filter(Boolean))
+);
+
+const services = await Service.find({ _id: { $in: serviceIds } }).lean();
+const svcMap = new Map(services.map(s => [String(s._id), s]));
+
+res.json(items.map(b => {
+  const sid = b.serviceId ? String(b.serviceId) : null;
+  const svc = sid ? svcMap.get(sid) : null;
+
+  return {
     id: String(b._id),
-    kind: b.kind,
-    serviceId: b.serviceId ? String(b.serviceId) : null,
+    kind: b.kind, // booking | blocked
+    status: b.status,
     startAt: DateTime.fromJSDate(b.startAt).toUTC().toISO(),
     endAt: DateTime.fromJSDate(b.endAt).toUTC().toISO(),
+
     clientName: b.clientName ?? null,
     phone: b.phone ?? null,
     notes: b.notes ?? null,
-    status: b.status,
-  })));
+
+    service: svc ? {
+      id: String(svc._id),
+      title: svc.title,
+      category: svc.category,
+      durationMin: svc.durationMin,
+      priceFrom: svc.priceFrom ?? null,
+      priceTo: svc.priceTo ?? null,
+      description: svc.description ?? null,
+    } : null,
+  };
+}));
+
 });
 
-app.post("/api/admin/block", async (req, res) => {
+app.post("/api/admin/block", requireAdminJWT, async (req, res) => {
   if (!requireAdmin(req, res)) return;
 
   const parsed = adminBlockSchema.safeParse(req.body);

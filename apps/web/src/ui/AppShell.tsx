@@ -73,6 +73,11 @@ export default function AppShell() {
                 <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("schedule")}>
                   {lang === "en" ? "Schedule" : "Графік"}
                 </button>
+                <button
+                        onClick={() => nav("/admin/login")}
+                        className="rounded-full border border-brand-line bg-brand-surface px-4 py-2 text-xs font-semibold hover:bg-brand-muted transition">
+                        Admin
+                </button>
               </nav>
 
               {/* Lang */}

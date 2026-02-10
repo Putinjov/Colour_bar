@@ -20,7 +20,7 @@ export default function ServicesSection() {
       }}
     >
       <Center>
-        <div className="text-center">
+        <div className="text-center" >
           <div
             data-reveal
             data-delay="0"
