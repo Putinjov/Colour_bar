@@ -18,7 +18,13 @@ if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
 const ADMIN_PASSWORD_HASH = ADMIN_PASSWORD ? bcrypt.hashSync(ADMIN_PASSWORD, 10) : "";
 
 export function signAdminToken() {
-  return jwt.sign({ role: "admin" }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  if (!JWT_SECRET) throw new Error("JWT_SECRET is missing");
+
+  return jwt.sign(
+    { role: "admin" },
+    JWT_SECRET,
+    { expiresIn: (process.env.JWT_EXPIRES_IN || "7d") as any }
+  );
 }
 
 export async function verifyAdminCredentials(email: string, password: string) {
