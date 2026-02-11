@@ -144,14 +144,6 @@ app.post("/api/bookings", async (req, res) => {
   });
 });
 
-function requireAdmin(req: express.Request, res: express.Response): boolean {
-  const pin = req.header("x-admin-pin");
-  if (!pin || pin !== ADMIN_PIN) {
-    res.status(401).send("Unauthorized");
-    return false;
-  }
-  return true;
-}
 
 app.get("/api/admin/bookings", requireAdminJWT, async (req, res) => {
 
@@ -209,7 +201,6 @@ res.json(items.map(b => {
 });
 
 app.post("/api/admin/block", requireAdminJWT, async (req, res) => {
-  if (!requireAdmin(req, res)) return;
 
   const parsed = adminBlockSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(parsed.error.flatten());
