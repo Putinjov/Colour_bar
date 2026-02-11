@@ -23,6 +23,7 @@ export default function Admin() {
   const [dateISO, setDateISO] = useState(() =>
     DateTime.local().toFormat("yyyy-LL-dd")
   );
+  
 
   const bookingsQ = useQuery({
     queryKey: ["adminBookings", dateISO, token],
@@ -36,6 +37,8 @@ export default function Admin() {
     const list = [...items].sort((a, b) => a.startAt.localeCompare(b.startAt));
     return list;
   }, [bookingsQ.data]);
+
+  
 
   async function doLogin(e: React.FormEvent) {
     e.preventDefault();
