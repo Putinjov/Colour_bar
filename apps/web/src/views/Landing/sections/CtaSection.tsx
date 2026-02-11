@@ -37,7 +37,7 @@ export default function CtaSection() {
               <div data-reveal data-delay="240" className="mt-8">
                 <button
                   onClick={() => nav("/services")}
-                  className="inline-flex items-center gap-3 rounded-full bg-brand-yellow text-brand-ink px-7 py-3 text-sm font-semibold hover:brightness-105 transition"
+                  className="inline-flex items-center gap-3 border-2 border-brand-yellow bg-brand-yellow text-brand-ink px-7 py-3 text-xs font-bold uppercase tracking-[0.08em] hover:brightness-105 transition"
                 >
                   {lang === "en" ? "Book Now" : "Записатися"}
                   <span className="text-lg leading-none">→</span>

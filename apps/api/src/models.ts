@@ -34,5 +34,17 @@ BookingSchema.index({ startAt: 1, endAt: 1, status: 1 });
 
 export const Booking = model("Booking", BookingSchema);
 
+const PushSubscriptionSchema = new Schema(
+  {
+    clientId: { type: String, required: true, unique: true },
+    enabled: { type: Boolean, default: true },
+    userAgent: { type: String },
+    lastSeenAt: { type: Date, default: () => new Date() },
+  },
+  { timestamps: true }
+);
+
+export const PushSubscription = model("PushSubscription", PushSubscriptionSchema);
+
 export type ServiceDoc = mongoose.InferSchemaType<typeof ServiceSchema> & { _id: Types.ObjectId };
 export type BookingDoc = mongoose.InferSchemaType<typeof BookingSchema> & { _id: Types.ObjectId };

@@ -4,12 +4,12 @@ import dotenv from "dotenv";
 import catalogRouter from "./routes/catalog.js";
 import { DateTime } from "luxon";
 import mongoose from "mongoose";
-import { Booking, Service } from "./models.js";
+import { Booking, PushSubscription, Service } from "./models.js";
 import { seedServicesIfEmpty } from "./seed.js";
 import { generateSlotsForDay } from "./slots.js";
 import { bookingCreateSchema, adminBlockSchema } from "./validators.js";
 import adminAuthRouter from "./routes/adminAuth.js";
-import { requireAdminJWT } from "./auth.js";
+import { requireAdminJWT, verifyAdminToken } from "./auth.js";
 
 
 dotenv.config();
@@ -30,6 +30,29 @@ app.use(express.json({ limit: "2mb" })); // for parsing application/json
 app.use("/api/catalog", catalogRouter); // Catalog routes (services list)
 app.use("/api/admin", adminAuthRouter); // Admin auth routes (login)
 
+const liveClients = new Map<string, Set<express.Response>>();
+
+function publishAdminPush(payload: { title: string; body: string; at: string }) {
+  const msg = `event: booking\ndata: ${JSON.stringify(payload)}\n\n`;
+  for (const listeners of liveClients.values()) {
+    for (const res of listeners) res.write(msg);
+  }
+}
+
+async function notifyAboutNewBooking(payload: {
+  serviceTitle: string;
+  startAtISO: string;
+  clientName?: string;
+}) {
+  const activeCount = await PushSubscription.countDocuments({ enabled: true });
+  if (!activeCount) return;
+
+  publishAdminPush({
+    title: "Новий запис",
+    body: `${payload.serviceTitle} • ${payload.startAtISO}${payload.clientName ? ` • ${payload.clientName}` : ""}`,
+    at: new Date().toISOString(),
+  });
+}
 
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -132,6 +155,12 @@ app.post("/api/bookings", async (req, res) => {
     status: "confirmed",
   });
 
+  await notifyAboutNewBooking({
+    serviceTitle: svc.title,
+    startAtISO: start.toISO() || startAt,
+    clientName,
+  });
+
   res.json({
     id: String(created._id),
     serviceId,
@@ -141,6 +170,74 @@ app.post("/api/bookings", async (req, res) => {
     phone,
     notes: notes ?? undefined,
     status: "confirmed",
+  });
+});
+
+
+app.post("/api/admin/push/subscribe", requireAdminJWT, async (req, res) => {
+  const clientId = String(req.body?.clientId ?? "").trim();
+  const userAgent = String(req.body?.userAgent ?? "").trim();
+
+  if (!clientId) {
+    return res.status(400).json({ error: "Invalid push subscription payload" });
+  }
+
+  await PushSubscription.updateOne(
+    { clientId },
+    {
+      $set: {
+        clientId,
+        userAgent: userAgent || undefined,
+        enabled: true,
+        lastSeenAt: new Date(),
+      },
+    },
+    { upsert: true }
+  );
+
+  res.status(201).json({ ok: true });
+});
+
+app.get("/api/admin/push/stream", async (req, res) => {
+  const token = String(req.query.token ?? "");
+  const clientId = String(req.query.clientId ?? "").trim();
+
+  try {
+    verifyAdminToken(token);
+  } catch {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!clientId) {
+    return res.status(400).json({ error: "clientId is required" });
+  }
+
+  const sub = await PushSubscription.findOne({ clientId, enabled: true }).lean();
+  if (!sub) return res.status(403).json({ error: "Subscription is not enabled" });
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+  res.write(`event: ready\ndata: ${JSON.stringify({ ok: true })}\n\n`);
+
+  let listeners = liveClients.get(clientId);
+  if (!listeners) {
+    listeners = new Set();
+    liveClients.set(clientId, listeners);
+  }
+  listeners.add(res);
+
+  const keepAlive = setInterval(() => {
+    res.write(`event: ping\ndata: ${Date.now()}\n\n`);
+  }, 25000);
+
+  req.on("close", () => {
+    clearInterval(keepAlive);
+    const current = liveClients.get(clientId);
+    if (!current) return;
+    current.delete(res);
+    if (current.size === 0) liveClients.delete(clientId);
   });
 });
 
@@ -236,6 +333,22 @@ async function main() {
   console.log("➡️ seeding");
   await seedServicesIfEmpty();
   console.log("✅ seed done");
+
+  try {
+    const stream = Booking.watch([{ $match: { operationType: "insert" } }]);
+    stream.on("change", async (change: any) => {
+      const doc = change?.fullDocument;
+      if (!doc || doc.kind !== "booking") return;
+      const svc = doc.serviceId ? await Service.findById(doc.serviceId).lean() : null;
+      await notifyAboutNewBooking({
+        serviceTitle: svc?.title || "Послуга",
+        startAtISO: DateTime.fromJSDate(doc.startAt).toUTC().toISO() || new Date(doc.startAt).toISOString(),
+        clientName: doc.clientName || undefined,
+      });
+    });
+  } catch {
+    console.warn("⚠️ Mongo change stream unavailable, live push stream will work only for local create endpoint.");
+  }
 
   const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 API on http://localhost:${PORT}`);
