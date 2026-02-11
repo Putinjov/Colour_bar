@@ -15,10 +15,10 @@ export default function DarkInfoCard({
     <div
       data-reveal="fade-left"
       data-delay={delay}
-      className="rounded-[22px] bg-white/10 border border-white/10 px-6 py-5"
+      className="rounded-sm bg-white/10 border-2 border-white/20 px-6 py-5 shadow-soft"
     >
       <div className="flex items-center gap-4">
-        <div className="h-11 w-11 rounded-full bg-brand-yellow/20 border border-white/10 grid place-items-center text-lg">
+        <div className="h-11 w-11 rounded-sm bg-brand-yellow text-brand-ink border-2 border-brand-yellow grid place-items-center text-lg">
           {icon}
         </div>
         <div>

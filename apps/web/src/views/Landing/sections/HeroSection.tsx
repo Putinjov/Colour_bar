@@ -38,7 +38,7 @@ export default function HeroSection() {
             <div
               data-reveal="fade-right"
               data-delay="0"
-              className="inline-flex items-center gap-2 rounded-full bg-brand-surface border border-brand-line px-4 py-2 text-xs text-brand-sub shadow-soft"
+              className="inline-flex items-center gap-2 border-2 border-brand-line bg-brand-surface px-4 py-2 text-xs uppercase tracking-[0.12em] text-brand-sub shadow-soft"
             >
               ✨ {t.badge}
             </div>
@@ -46,7 +46,7 @@ export default function HeroSection() {
             <h1
               data-reveal
               data-delay="120"
-              className="mt-6 text-5xl md:text-7xl font-light tracking-tight"
+              className="mt-6 text-5xl md:text-7xl font-semibold tracking-tight uppercase"
             >
               <span className="text-brand-ink">{t.title}</span>
               <span className="text-brand-yellow">{t.accent}</span>
@@ -73,7 +73,7 @@ export default function HeroSection() {
           </div>
 
           <div data-reveal="zoom" data-delay="180" className="relative">
-            <div className="rounded-[28px] overflow-hidden border border-brand-line bg-brand-surface shadow-soft">
+            <div className="rounded-sm overflow-hidden border-2 border-brand-line bg-brand-surface shadow-soft">
               <img
                 src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1600&q=80"
                 className="w-full h-[320px] md:h-[440px] object-cover"
@@ -81,7 +81,7 @@ export default function HeroSection() {
               />
             </div>
 
-            <div className="absolute -bottom-4 left-4 rounded-2xl bg-brand-surface border border-brand-line p-4 shadow-soft">
+            <div className="absolute -bottom-4 left-4 rounded-sm bg-brand-yellow border-2 border-brand-yellow p-4 shadow-soft text-brand-ink">
               <div className="text-2xl font-semibold text-brand-ink">10+</div>
               <div className="text-xs text-brand-sub">{t.years}</div>
             </div>

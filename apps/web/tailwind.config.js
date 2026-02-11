@@ -8,20 +8,19 @@ export default {
           yellow: "#F6C445",
           purple: "#de90f6",
 
-          bg: "#F7F4EF",        // головний фон
-          surface: "#FFFFFF",   // картки
-          muted: "#F1EEE8",     // секції/підкладки
-          ink: "#14121A",       // текст
-          sub: "#6B6676",       // secondary text
-          line: "rgba(20,18,26,0.10)", // бордери
+          bg: "#F7F4EF",
+          surface: "#FFFFFF",
+          muted: "#F1EEE8",
+          ink: "#14121A",
+          sub: "#6B6676",
+          line: "rgba(20,18,26,0.10)",
         },
       },
-      borderRadius: { xl2: "1.25rem" },
+      borderRadius: { xl2: "0.25rem" },
       boxShadow: {
-        soft: "0 18px 45px rgba(20,18,26,0.10)",
+        soft: "8px 8px 0 rgba(0,0,0,0.22)",
       },
     },
   },
   plugins: [],
 };
-
