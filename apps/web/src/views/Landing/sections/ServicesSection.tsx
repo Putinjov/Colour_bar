@@ -1,7 +1,6 @@
 import React from "react";
 import { useI18n } from "../../../i18n.js";
 import Center from "../components/Center.js";
-import ServiceCard from "../components/ServiceCard.js";
 import CatalogCategoriesSliderMarquee from "../components/CatalogCategoriesSlider.js";
 
 export default function ServicesSection() {
@@ -9,7 +8,11 @@ export default function ServicesSection() {
 
   const t = {
     k: lang === "en" ? "OUR SERVICES" : "ПОСЛУГИ",
-    title: lang === "en" ? "Artistry in Every Detail" : "Мистецтво в кожній деталі",
+    title: lang === "en" ? "Services for Colour, Cut & Care" : "Послуги для кольору, стрижки та догляду",
+    text:
+      lang === "en"
+        ? "Choose the category and explore treatments tailored to your hair goals."
+        : "Оберіть категорію та перегляньте процедури, підібрані під ваш запит.",
   };
 
   return (
@@ -20,7 +23,7 @@ export default function ServicesSection() {
       }}
     >
       <Center>
-        <div className="text-center" >
+        <div className="pt-16 text-center">
           <div
             data-reveal
             data-delay="0"
@@ -35,11 +38,19 @@ export default function ServicesSection() {
           >
             {t.title}
           </h2>
+          <p
+            data-reveal
+            data-delay="220"
+            className="mt-4 text-sm md:text-base text-brand-sub max-w-2xl mx-auto"
+          >
+            {t.text}
+          </p>
         </div>
 
-
+        <div className="mt-10 pb-16">
+          <CatalogCategoriesSliderMarquee speed={9000} />
+        </div>
       </Center>
-      <CatalogCategoriesSliderMarquee speed={9000} />
     </section>
   );
 }
