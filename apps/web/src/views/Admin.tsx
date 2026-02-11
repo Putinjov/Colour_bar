@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { DateTime } from "luxon";
 import { useQuery } from "@tanstack/react-query";
-import { adminGetBookings, adminLogin, type AdminBooking } from "../api/admin";
-import { clearAdminToken, getAdminToken, setAdminToken } from "../lib/adminAuth";
+import { adminGetBookings, adminLogin, type AdminBooking } from "../api/admin.js";
+import { clearAdminToken, getAdminToken, setAdminToken } from "../lib/adminAuth.js";
 
 function fmtTime(iso: string) {
   return DateTime.fromISO(iso, { zone: "utc" }).toLocal().toFormat("HH:mm");

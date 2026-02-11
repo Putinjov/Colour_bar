@@ -1,7 +1,14 @@
+import { clearAdminToken } from "../lib/adminAuth.js";
+
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, init);
+
+  if (res.status === 401) {
+    clearAdminToken();
+    throw new Error("Unauthorized");
+  }
 
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
