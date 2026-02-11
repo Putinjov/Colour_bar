@@ -6,14 +6,14 @@ export function Button(
   const { variant = "primary", className, ...rest } = props;
 
   const base =
-    "inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center rounded-sm border-2 border-brand-line px-6 py-3 text-xs font-bold uppercase tracking-[0.08em] transition active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed";
 
   const style =
     variant === "primary"
-      ? "bg-brand-ink text-white hover:opacity-90"
+      ? "bg-brand-yellow text-brand-ink border-brand-yellow hover:brightness-110"
       : variant === "dark"
-      ? "bg-brand-purple text-white hover:opacity-90"
-      : "bg-transparent text-brand-ink border border-brand-line hover:bg-brand-muted";
+      ? "bg-brand-purple text-white border-brand-purple hover:brightness-110"
+      : "bg-transparent text-brand-ink border-brand-line hover:bg-brand-muted";
 
   return <button className={[base, style, className ?? ""].join(" ")} {...rest} />;
 }

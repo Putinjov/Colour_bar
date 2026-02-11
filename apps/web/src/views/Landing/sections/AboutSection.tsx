@@ -30,7 +30,7 @@ export default function AboutSection() {
       <Center>
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <div data-reveal data-delay="0" className="text-xs tracking-widest text-brand-yellow">
+            <div data-reveal data-delay="0" className="text-xs uppercase tracking-[0.18em] text-brand-yellow">
               {t.k}
             </div>
             <h2 data-reveal data-delay="120" className="mt-3 text-4xl md:text-5xl font-light text-brand-ink">
@@ -52,14 +52,14 @@ export default function AboutSection() {
             <img
               data-reveal="fade-left"
               data-delay="200"
-              className="rounded-2xl shadow-soft border border-brand-line bg-brand-surface object-cover w-full h-[260px]"
+              className="rounded-sm shadow-soft border-2 border-brand-line bg-brand-surface object-cover w-full h-[260px]"
               alt="About 1"
               src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?auto=format&fit=crop&w=900&q=80"
             />
             <img
               data-reveal="fade-left"
               data-delay="320"
-              className="rounded-2xl shadow-soft border border-brand-line bg-brand-surface object-cover w-full h-[260px]"
+              className="rounded-sm shadow-soft border-2 border-brand-line bg-brand-surface object-cover w-full h-[260px]"
               alt="About 2"
               src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=900&q=80"
             />
@@ -75,7 +75,7 @@ function Stat({ value, label, delay }: { value: string; label: string; delay: nu
     <div
       data-reveal
       data-delay={delay}
-      className="rounded-2xl bg-brand-surface border border-brand-line p-4 shadow-soft"
+      className="rounded-sm bg-brand-surface border-2 border-brand-line p-4 shadow-soft"
     >
       <div className="text-xl font-semibold text-brand-ink">{value}</div>
       <div className="text-[11px] text-brand-sub mt-1">{label}</div>

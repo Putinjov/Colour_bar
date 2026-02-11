@@ -1,8 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { DateTime } from "luxon";
 import { useQuery } from "@tanstack/react-query";
-import { adminGetBookings, adminLogin, type AdminBooking } from "../api/admin.js";
+import {
+  adminGetBookings,
+  adminLogin,
+  adminPushSubscribe,
+  type AdminBooking,
+} from "../api/admin.js";
 import { clearAdminToken, getAdminToken, setAdminToken } from "../lib/adminAuth.js";
+import { useNavigate } from "react-router-dom";
+
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 function fmtTime(iso: string) {
   return DateTime.fromISO(iso, { zone: "utc" }).toLocal().toFormat("HH:mm");
@@ -13,17 +21,18 @@ function fmtDateHuman(dateISO: string) {
 }
 
 export default function Admin() {
+  const nav = useNavigate();
   const [token, setToken] = useState<string | null>(() => getAdminToken());
+  const [pushStatus, setPushStatus] = useState<string>("");
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushClientId, setPushClientId] = useState<string | null>(null);
 
-  // login form
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // date picker (YYYY-MM-DD)
   const [dateISO, setDateISO] = useState(() =>
     DateTime.local().toFormat("yyyy-LL-dd")
   );
-  
 
   const bookingsQ = useQuery({
     queryKey: ["adminBookings", dateISO, token],
@@ -38,8 +47,6 @@ export default function Admin() {
     return list;
   }, [bookingsQ.data]);
 
-  
-
   async function doLogin(e: React.FormEvent) {
     e.preventDefault();
     const { token } = await adminLogin(email.trim(), password);
@@ -52,7 +59,75 @@ export default function Admin() {
     setToken(null);
   }
 
-  // ✅ LOGIN UI
+  function getOrCreatePushClientId() {
+    const key = "colourbar.admin.pushClientId";
+    const existing = localStorage.getItem(key);
+    if (existing) return existing;
+    const fresh = `admin-${crypto.randomUUID()}`;
+    localStorage.setItem(key, fresh);
+    return fresh;
+  }
+
+  async function enableNotifications() {
+    if (!token) return;
+
+    setPushBusy(true);
+    setPushStatus("");
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushStatus("Доступ до сповіщень не надано.");
+        return;
+      }
+
+      const clientId = getOrCreatePushClientId();
+
+      await adminPushSubscribe(token, {
+        clientId,
+        userAgent: navigator.userAgent,
+      });
+
+      setPushClientId(clientId);
+      setPushStatus("Сповіщення увімкнено. Нові записи будуть приходити автоматично.");
+    } catch (err: any) {
+      setPushStatus(err?.message || "Не вдалося увімкнути сповіщення.");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!token || !pushClientId) return;
+
+    const streamUrl = `${API_BASE}/api/admin/push/stream?token=${encodeURIComponent(token)}&clientId=${encodeURIComponent(pushClientId)}`;
+    const source = new EventSource(streamUrl);
+
+    source.addEventListener("booking", (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data || "{}");
+        setPushStatus(data?.body || "Новий запис у базі даних");
+        if (Notification.permission === "granted") {
+          new Notification(data?.title || "Новий запис", {
+            body: data?.body || "Зʼявився новий запис",
+          });
+        }
+        bookingsQ.refetch();
+      } catch {
+        setPushStatus("Новий запис у базі даних");
+        bookingsQ.refetch();
+      }
+    });
+
+    source.onerror = () => {
+      setPushStatus("Канал сповіщень перепідключається...");
+    };
+
+    return () => {
+      source.close();
+    };
+  }, [token, pushClientId, bookingsQ.refetch]);
+
   if (!token) {
     return (
       <div className="mx-auto max-w-md px-4 py-16">
@@ -100,7 +175,6 @@ export default function Admin() {
     );
   }
 
-  // ✅ ADMIN UI
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -130,6 +204,21 @@ export default function Admin() {
           </button>
 
           <button
+            onClick={enableNotifications}
+            disabled={pushBusy}
+            className="rounded-full border border-brand-line bg-brand-surface px-4 py-2 text-sm font-semibold hover:bg-brand-muted transition disabled:opacity-60"
+          >
+            {pushBusy ? "Підключення..." : "Увімкнути сповіщення"}
+          </button>
+
+          <button
+            onClick={() => nav("/admin-catalog")}
+            className="rounded-full border border-brand-line bg-brand-surface px-4 py-2 text-sm font-semibold hover:bg-brand-muted transition"
+          >
+            До каталогу
+          </button>
+
+          <button
             onClick={logout}
             className="rounded-full bg-brand-ink text-white px-4 py-2 text-sm font-semibold hover:opacity-90 transition"
           >
@@ -138,7 +227,12 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* content */}
+      {pushStatus ? (
+        <div className="mt-4 rounded-xl border border-brand-line bg-white p-3 text-sm text-brand-sub">
+          {pushStatus}
+        </div>
+      ) : null}
+
       <div className="mt-8">
         {bookingsQ.isLoading && (
           <div className="text-brand-sub">Loading…</div>
