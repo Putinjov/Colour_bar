@@ -56,17 +56,30 @@ export default function AppShell() {
             />
           </button>
 
+          {/* Desktop */}
           <div className="hidden md:flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-4">
-              <button className={[linkBase, onLanding ? linkActive : linkIdle].join(" ")} onClick={() => goSection("home")}>
+              <button
+                className={[linkBase, onLanding ? linkActive : linkIdle].join(" ")}
+                onClick={() => goSection("home")}
+              >
                 {lang === "en" ? "Home" : "Головна"}
               </button>
-              <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("services")}>
+
+              <button
+                className={[linkBase, linkIdle].join(" ")}
+                onClick={() => goSection("services")}
+              >
                 {lang === "en" ? "Services" : "Послуги"}
               </button>
-              <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("schedule")}>
+
+              <button
+                className={[linkBase, linkIdle].join(" ")}
+                onClick={() => goSection("schedule")}
+              >
                 {lang === "en" ? "Schedule" : "Графік"}
               </button>
+
               <button
                 onClick={() => nav("/admin/login")}
                 className="border-2 border-brand-line bg-brand-surface px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] hover:bg-brand-muted transition"
@@ -80,7 +93,9 @@ export default function AppShell() {
                 onClick={() => setLang("uk")}
                 className={[
                   "px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                  lang === "uk" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
+                  lang === "uk"
+                    ? "bg-brand-purple text-white"
+                    : "text-brand-sub hover:text-brand-ink",
                 ].join(" ")}
               >
                 UKR
@@ -89,7 +104,9 @@ export default function AppShell() {
                 onClick={() => setLang("en")}
                 className={[
                   "px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                  lang === "en" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
+                  lang === "en"
+                    ? "bg-brand-purple text-white"
+                    : "text-brand-sub hover:text-brand-ink",
                 ].join(" ")}
               >
                 EN
@@ -104,6 +121,7 @@ export default function AppShell() {
             </button>
           </div>
 
+          {/* Mobile menu button */}
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
@@ -120,16 +138,28 @@ export default function AppShell() {
           </button>
         </div>
 
+        {/* Mobile menu */}
         {mobileOpen ? (
           <div id="mobile-menu" className="md:hidden border-t-2 border-brand-line px-4 pb-4">
             <nav className="grid gap-2 pt-4">
-              <button className={[linkBase, onLanding ? linkActive : linkIdle, "text-left"].join(" ")} onClick={() => goSection("home")}>
+              <button
+                className={[linkBase, onLanding ? linkActive : linkIdle, "text-left"].join(" ")}
+                onClick={() => goSection("home")}
+              >
                 {lang === "en" ? "Home" : "Головна"}
               </button>
-              <button className={[linkBase, linkIdle, "text-left"].join(" ")} onClick={() => goSection("services")}>
+
+              <button
+                className={[linkBase, linkIdle, "text-left"].join(" ")}
+                onClick={() => goSection("services")}
+              >
                 {lang === "en" ? "Services" : "Послуги"}
               </button>
-              <button className={[linkBase, linkIdle, "text-left"].join(" ")} onClick={() => goSection("schedule")}>
+
+              <button
+                className={[linkBase, linkIdle, "text-left"].join(" ")}
+                onClick={() => goSection("schedule")}
+              >
                 {lang === "en" ? "Schedule" : "Графік"}
               </button>
 
@@ -148,7 +178,9 @@ export default function AppShell() {
                   onClick={() => setLang("uk")}
                   className={[
                     "flex-1 px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                    lang === "uk" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
+                    lang === "uk"
+                      ? "bg-brand-purple text-white"
+                      : "text-brand-sub hover:text-brand-ink",
                   ].join(" ")}
                 >
                   UKR
@@ -157,7 +189,9 @@ export default function AppShell() {
                   onClick={() => setLang("en")}
                   className={[
                     "flex-1 px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                    lang === "en" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
+                    lang === "en"
+                      ? "bg-brand-purple text-white"
+                      : "text-brand-sub hover:text-brand-ink",
                   ].join(" ")}
                 >
                   EN
