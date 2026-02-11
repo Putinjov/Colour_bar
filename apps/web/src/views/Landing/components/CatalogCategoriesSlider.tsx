@@ -88,7 +88,7 @@ export default function CatalogCategoriesSliderMarquee({
             <button
               type="button"
               onClick={() => nav(`/services-catalog#${encodeURIComponent(s.key)}`)}
-              className="group w-full text-left rounded-[22px] overflow-hidden border border-brand-line bg-white shadow-soft transition hover:shadow-lg"
+              className="group w-full text-left rounded-sm overflow-hidden border-2 border-brand-line bg-brand-surface shadow-soft transition hover:brightness-110"
             >
               <div className="relative h-[320px] sm:h-[360px] overflow-hidden">
                 <img
@@ -105,7 +105,7 @@ export default function CatalogCategoriesSliderMarquee({
 
                 {/* pill */}
                 <div className="absolute left-4 top-4">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/85 backdrop-blur border border-white/40 px-3 py-1 text-[11px] font-semibold text-brand-ink">
+                  <div className="inline-flex items-center gap-2 rounded-sm bg-brand-yellow border-2 border-brand-yellow px-3 py-1 text-[11px] font-semibold text-brand-ink">
                     <span className="text-brand-yellow">●</span>
                     {s.pill}
                   </div>

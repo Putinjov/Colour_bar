@@ -4,7 +4,7 @@ export function Card({ children, className }: React.PropsWithChildren<{ classNam
   return (
     <div
       className={[
-        "rounded-[24px] border border-brand-line bg-brand-surface shadow-soft",
+        "rounded-sm border-2 border-brand-line bg-brand-surface shadow-soft",
         "p-5 md:p-7",
         className ?? "",
       ].join(" ")}
