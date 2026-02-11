@@ -33,6 +33,13 @@ export async function verifyAdminCredentials(email: string, password: string) {
   return bcrypt.compare(password, ADMIN_PASSWORD_HASH);
 }
 
+export function verifyAdminToken(token: string) {
+  if (!token) throw new Error("Unauthorized");
+  const payload = jwt.verify(token, JWT_SECRET) as any;
+  if (payload?.role !== "admin") throw new Error("Forbidden");
+  return payload;
+}
+
 export function requireAdminJWT(req: Request, res: Response, next: NextFunction) {
   const header = req.header("authorization") || "";
   const [scheme, token] = header.split(" ");
@@ -42,8 +49,7 @@ export function requireAdminJWT(req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    if (payload?.role !== "admin") return res.status(403).json({ error: "Forbidden" });
+    const payload = verifyAdminToken(token);
     (req as any).admin = payload;
     return next();
   } catch {

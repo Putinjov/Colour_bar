@@ -73,3 +73,18 @@ export function adminBlockRange(
     body: JSON.stringify(payload),
   });
 }
+
+
+export function adminPushSubscribe(
+  token: string,
+  subscription: { clientId: string; userAgent?: string }
+) {
+  return http<{ ok: boolean }>("/api/admin/push/subscribe", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(subscription),
+  });
+}
