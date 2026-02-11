@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n.js";
 
@@ -12,16 +12,28 @@ export default function AppShell() {
   const loc = useLocation();
   const nav = useNavigate();
   const { lang, setLang } = useI18n();
+
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMounted, setMobileMounted] = useState(false);
 
   const onLanding = loc.pathname === "/";
 
-  const linkBase = "text-xs uppercase tracking-[0.14em] transition px-2 py-2";
+  const linkBase = "text-xs uppercase tracking-[0.14em] transition px-3 py-3";
   const linkIdle = "text-brand-sub hover:text-brand-ink";
   const linkActive = "bg-brand-yellow text-brand-ink font-bold";
 
-  function goSection(id: "home" | "services" | "schedule") {
+  function openMobile() {
+    setMobileMounted(true);
+    // наступний тик — щоб transition точно спрацював
+    requestAnimationFrame(() => setMobileOpen(true));
+  }
+
+  function closeMobile() {
     setMobileOpen(false);
+  }
+
+  function goSection(id: "home" | "services" | "schedule") {
+    closeMobile();
     if (!onLanding) {
       nav("/");
       setTimeout(() => scrollToId(id), 80);
@@ -30,6 +42,33 @@ export default function AppShell() {
     scrollToId(id);
   }
 
+  // Lock body scroll + ESC close + unmount after animation
+  useEffect(() => {
+    if (!mobileMounted) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMobile();
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileMounted]);
+
+  useEffect(() => {
+    if (!mobileMounted) return;
+    if (mobileOpen) return;
+
+    // дати панелі “виїхати назад” перед unmount
+    const t = window.setTimeout(() => setMobileMounted(false), 220);
+    return () => window.clearTimeout(t);
+  }, [mobileOpen, mobileMounted]);
+
   return (
     <div className="min-h-dvh bg-brand-bg text-brand-ink">
       <header className="sticky top-0 z-50 border-b-2 border-brand-line bg-brand-bg">
@@ -37,7 +76,7 @@ export default function AppShell() {
           <button
             onClick={() => {
               nav("/");
-              setMobileOpen(false);
+              closeMobile();
             }}
             className="select-none flex items-center"
             aria-label="Go home"
@@ -65,21 +104,12 @@ export default function AppShell() {
               >
                 {lang === "en" ? "Home" : "Головна"}
               </button>
-
-              <button
-                className={[linkBase, linkIdle].join(" ")}
-                onClick={() => goSection("services")}
-              >
+              <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("services")}>
                 {lang === "en" ? "Services" : "Послуги"}
               </button>
-
-              <button
-                className={[linkBase, linkIdle].join(" ")}
-                onClick={() => goSection("schedule")}
-              >
+              <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("schedule")}>
                 {lang === "en" ? "Schedule" : "Графік"}
               </button>
-
               <button
                 onClick={() => nav("/admin/login")}
                 className="border-2 border-brand-line bg-brand-surface px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] hover:bg-brand-muted transition"
@@ -93,9 +123,7 @@ export default function AppShell() {
                 onClick={() => setLang("uk")}
                 className={[
                   "px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                  lang === "uk"
-                    ? "bg-brand-purple text-white"
-                    : "text-brand-sub hover:text-brand-ink",
+                  lang === "uk" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
                 ].join(" ")}
               >
                 UKR
@@ -104,9 +132,7 @@ export default function AppShell() {
                 onClick={() => setLang("en")}
                 className={[
                   "px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                  lang === "en"
-                    ? "bg-brand-purple text-white"
-                    : "text-brand-sub hover:text-brand-ink",
+                  lang === "en" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
                 ].join(" ")}
               >
                 EN
@@ -124,9 +150,9 @@ export default function AppShell() {
           {/* Mobile menu button */}
           <button
             type="button"
-            onClick={() => setMobileOpen((prev) => !prev)}
+            onClick={() => (mobileMounted && mobileOpen ? closeMobile() : openMobile())}
             className="md:hidden inline-flex h-10 w-10 items-center justify-center border-2 border-brand-line bg-brand-surface"
-            aria-label={lang === "en" ? "Toggle menu" : "Відкрити меню"}
+            aria-label={lang === "en" ? "Open menu" : "Відкрити меню"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
           >
@@ -137,38 +163,63 @@ export default function AppShell() {
             </div>
           </button>
         </div>
+      </header>
 
-        {/* Mobile menu */}
-        {mobileOpen ? (
-          <div id="mobile-menu" className="md:hidden border-t-2 border-brand-line px-4 pb-4">
-            <nav className="grid gap-2 pt-4">
+      {/* Mobile slide-in overlay */}
+      {mobileMounted ? (
+        <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true">
+          {/* Backdrop (fade) */}
+          <button
+            className={[
+              "absolute inset-0 transition-opacity duration-200",
+              mobileOpen ? "bg-black/50 opacity-100" : "bg-black/0 opacity-0",
+            ].join(" ")}
+            aria-label={lang === "en" ? "Close menu" : "Закрити меню"}
+            onClick={closeMobile}
+          />
+
+          {/* Panel (slide) */}
+          <div
+            id="mobile-menu"
+            className={[
+              "absolute right-0 top-0 h-full w-[min(90vw,360px)] border-l-2 border-brand-line bg-brand-bg shadow-2xl",
+              "transform transition-transform duration-200 ease-out",
+              mobileOpen ? "translate-x-0" : "translate-x-full",
+            ].join(" ")}
+          >
+            <div className="flex items-center justify-between border-b-2 border-brand-line px-4 py-3">
+              <div className="text-xs font-bold uppercase tracking-[0.12em]">
+                {lang === "en" ? "Menu" : "Меню"}
+              </div>
               <button
-                className={[linkBase, onLanding ? linkActive : linkIdle, "text-left"].join(" ")}
+                onClick={closeMobile}
+                className="h-10 w-10 grid place-items-center border-2 border-brand-line bg-brand-surface"
+                aria-label={lang === "en" ? "Close menu" : "Закрити меню"}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 grid gap-2">
+              <button
+                className={[linkBase, onLanding ? linkActive : linkIdle, "text-left w-full"].join(" ")}
                 onClick={() => goSection("home")}
               >
                 {lang === "en" ? "Home" : "Головна"}
               </button>
-
-              <button
-                className={[linkBase, linkIdle, "text-left"].join(" ")}
-                onClick={() => goSection("services")}
-              >
+              <button className={[linkBase, linkIdle, "text-left w-full"].join(" ")} onClick={() => goSection("services")}>
                 {lang === "en" ? "Services" : "Послуги"}
               </button>
-
-              <button
-                className={[linkBase, linkIdle, "text-left"].join(" ")}
-                onClick={() => goSection("schedule")}
-              >
+              <button className={[linkBase, linkIdle, "text-left w-full"].join(" ")} onClick={() => goSection("schedule")}>
                 {lang === "en" ? "Schedule" : "Графік"}
               </button>
 
               <button
                 onClick={() => {
                   nav("/admin/login");
-                  setMobileOpen(false);
+                  closeMobile();
                 }}
-                className="mt-2 border-2 border-brand-line bg-brand-surface px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-left"
+                className="mt-2 border-2 border-brand-line bg-brand-surface px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-left"
               >
                 Admin
               </button>
@@ -177,10 +228,8 @@ export default function AppShell() {
                 <button
                   onClick={() => setLang("uk")}
                   className={[
-                    "flex-1 px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                    lang === "uk"
-                      ? "bg-brand-purple text-white"
-                      : "text-brand-sub hover:text-brand-ink",
+                    "flex-1 px-3 py-3 text-xs font-bold uppercase tracking-[0.08em] transition",
+                    lang === "uk" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
                   ].join(" ")}
                 >
                   UKR
@@ -188,10 +237,8 @@ export default function AppShell() {
                 <button
                   onClick={() => setLang("en")}
                   className={[
-                    "flex-1 px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                    lang === "en"
-                      ? "bg-brand-purple text-white"
-                      : "text-brand-sub hover:text-brand-ink",
+                    "flex-1 px-3 py-3 text-xs font-bold uppercase tracking-[0.08em] transition",
+                    lang === "en" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
                   ].join(" ")}
                 >
                   EN
@@ -201,16 +248,16 @@ export default function AppShell() {
               <button
                 onClick={() => {
                   nav("/services");
-                  setMobileOpen(false);
+                  closeMobile();
                 }}
-                className="mt-2 border-2 border-brand-yellow bg-brand-yellow text-brand-ink px-5 py-2 text-xs font-bold uppercase tracking-[0.08em]"
+                className="mt-2 border-2 border-brand-yellow bg-brand-yellow text-brand-ink px-5 py-3 text-xs font-bold uppercase tracking-[0.08em]"
               >
                 {lang === "en" ? "Book Now" : "Записатися"}
               </button>
-            </nav>
+            </div>
           </div>
-        ) : null}
-      </header>
+        </div>
+      ) : null}
 
       {onLanding ? (
         <Outlet />

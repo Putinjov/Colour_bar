@@ -1,12 +1,21 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useI18n } from "../../../i18n.js";
 import Center from "../components/Center.js";
 import { Button } from "../../../ui/Button.js";
 
+function scrollToId(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 export default function HeroSection() {
   const nav = useNavigate();
+  const loc = useLocation();
   const { lang } = useI18n();
+
+  const onLanding = loc.pathname === "/";
 
   const t = {
     badge: lang === "en" ? "Premium Hair Studio" : "Преміум Hair Studio",
@@ -20,6 +29,15 @@ export default function HeroSection() {
     explore: lang === "en" ? "Explore Services" : "Переглянути послуги",
     years: lang === "en" ? "Years of Excellence" : "Років досвіду",
   };
+
+  function goServicesSection() {
+    if (!onLanding) {
+      nav("/");
+      setTimeout(() => scrollToId("services"), 80);
+      return;
+    }
+    scrollToId("services");
+  }
 
   return (
     <section
@@ -43,14 +61,16 @@ export default function HeroSection() {
               ✨ {t.badge}
             </div>
 
-            <h1
-              data-reveal
-              data-delay="120"
-              className="mt-6 text-5xl md:text-7xl font-semibold tracking-tight uppercase"
-            >
-              <span className="text-brand-ink">{t.title}</span>
-              <span className="text-brand-yellow">{t.accent}</span>
-            </h1>
+            {/* LOGO (zoom + fade) */}
+            <div data-reveal="zoom" data-delay="120" className="mt-6">
+              <img
+                src="/branding/logo-full-outline.svg"
+                alt="Colour Lab"
+                className="h-16 md:h-24 w-auto"
+                draggable={false}
+                />
+            </div>
+
 
             <p
               data-reveal
@@ -63,10 +83,7 @@ export default function HeroSection() {
             <div data-reveal data-delay="360" className="mt-7 flex flex-col sm:flex-row gap-3">
               <Button onClick={() => nav("/services")}>{t.book}</Button>
 
-              <Button
-                variant="ghost"
-                onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
-              >
+              <Button variant="ghost" onClick={goServicesSection}>
                 {t.explore}
               </Button>
             </div>
