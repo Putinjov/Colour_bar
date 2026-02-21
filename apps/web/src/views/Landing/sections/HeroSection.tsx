@@ -23,8 +23,8 @@ export default function HeroSection() {
     accent: "Lab",
     text:
       lang === "en"
-        ? "Where artistry meets science. Colouring, precision cuts, and restorative treatments."
-        : "Де мистецтво зустрічає техніку. Фарбування, точні стрижки та відновлення волосся.",
+        ? "Where creativity meets expertise. Professional colouring, precision haircuts, and restorative hair treatments."
+        : "Коли креативність поєднується з професіоналізмом. Фарбування, точні стрижки та процедури з відновлення волосся.",
     book: lang === "en" ? "Book Appointment" : "Записатися",
     explore: lang === "en" ? "Explore Services" : "Переглянути послуги",
     years: lang === "en" ? "Years of Excellence" : "Років досвіду",
@@ -99,7 +99,7 @@ export default function HeroSection() {
             </div>
 
             <div className="absolute -bottom-4 left-4 rounded-sm bg-brand-yellow border-2 border-brand-yellow p-4 shadow-soft text-brand-ink">
-              <div className="text-2xl font-semibold text-brand-ink">10+</div>
+              <div className="text-2xl font-semibold text-brand-ink">15+</div>
               <div className="text-xs text-brand-sub">{t.years}</div>
             </div>
           </div>
