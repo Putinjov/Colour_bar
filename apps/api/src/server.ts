@@ -10,6 +10,7 @@ import { generateSlotsForDay } from "./slots.js";
 import { bookingCreateSchema, adminBlockSchema } from "./validators.js";
 import adminAuthRouter from "./routes/adminAuth.js";
 import { requireAdminJWT, verifyAdminToken } from "./auth.js";
+import { sendBookingEmail } from "./services/sendBookingEmail.js";
 
 
 dotenv.config();
@@ -135,7 +136,7 @@ app.post("/api/bookings", async (req, res) => {
 
   const end = start.plus({ minutes: svc.durationMin });
 
-  // prevent overlaps (bookings + blocked)
+  // 1) Перевіряємо зайнятість ДО створення
   const overlap = await Booking.findOne({
     status: "confirmed",
     startAt: { $lt: end.toJSDate() },
@@ -144,6 +145,7 @@ app.post("/api/bookings", async (req, res) => {
 
   if (overlap) return res.status(409).send("Цей час уже зайнятий");
 
+  // 2) Створюємо ОДИН документ
   const created = await Booking.create({
     kind: "booking",
     serviceId,
@@ -155,21 +157,34 @@ app.post("/api/bookings", async (req, res) => {
     status: "confirmed",
   });
 
+  // 3) Дублюємо на пошту (не ламаємо бронювання якщо SMTP впав)
+  sendBookingEmail({
+    ...created.toObject(),
+    serviceTitle: svc.title,
+    startAtISO: start.toISO(),
+    endAtISO: end.toISO(),
+  }).catch(console.error);
+
+  // 4) Нотифікація адміна (SSE / push stream)
   await notifyAboutNewBooking({
     serviceTitle: svc.title,
     startAtISO: start.toISO() || startAt,
     clientName,
   });
 
+  // 5) Відповідь ОДИН раз
   res.json({
-    id: String(created._id),
-    serviceId,
-    startAt: start.toISO(),
-    endAt: end.toISO(),
-    clientName,
-    phone,
-    notes: notes ?? undefined,
-    status: "confirmed",
+    ok: true,
+    booking: {
+      id: String(created._id),
+      serviceId,
+      startAt: start.toISO(),
+      endAt: end.toISO(),
+      clientName,
+      phone,
+      notes: notes ?? undefined,
+      status: "confirmed",
+    },
   });
 });
 
