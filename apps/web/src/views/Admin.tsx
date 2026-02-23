@@ -40,13 +40,15 @@ export default function Admin() {
     return Array.from({ length: 7 }, (_, i) => weekStart.plus({ days: i }).toFormat("yyyy-LL-dd"));
   }, [dateISO]);
 
-  const bookingsQ = useQuery({
+    const bookingsQ = useQuery({
     queryKey: ["adminBookings", token, ...weekDates],
     queryFn: async () => {
+      // fetch day-by-day for the selected week
       const days = await Promise.all(
         weekDates.map((dayISO) => adminGetBookings(dayISO, token!, "day"))
       );
 
+      // dedupe by booking.id (in case API returns overlaps)
       const deduped = new Map<string, AdminBooking>();
       days.flat().forEach((booking) => {
         deduped.set(booking.id, booking);
