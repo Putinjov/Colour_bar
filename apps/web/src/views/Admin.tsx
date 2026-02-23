@@ -16,8 +16,8 @@ function fmtTime(iso: string) {
   return DateTime.fromISO(iso, { zone: "utc" }).toLocal().toFormat("HH:mm");
 }
 
-function fmtDateHuman(dateISO: string) {
-  return DateTime.fromISO(dateISO).toFormat("ccc, dd LLL yyyy");
+function fmtDayTitle(dateISO: string) {
+  return DateTime.fromISO(dateISO).toFormat("cccc, dd LLL");
 }
 
 export default function Admin() {
@@ -34,17 +34,54 @@ export default function Admin() {
     DateTime.local().toFormat("yyyy-LL-dd")
   );
 
+  const weekDates = useMemo(() => {
+    const selected = DateTime.fromISO(dateISO);
+    const weekStart = selected.startOf("week");
+    return Array.from({ length: 7 }, (_, i) => weekStart.plus({ days: i }).toFormat("yyyy-LL-dd"));
+  }, [dateISO]);
+
   const bookingsQ = useQuery({
-    queryKey: ["adminBookings", dateISO, token],
-    queryFn: () => adminGetBookings(dateISO, token!),
+    queryKey: ["adminBookings", token, ...weekDates],
+    queryFn: async () => {
+      const days = await Promise.all(
+        weekDates.map((dayISO) => adminGetBookings(dayISO, token!, "day"))
+      );
+
+      const deduped = new Map<string, AdminBooking>();
+      days.flat().forEach((booking) => {
+        deduped.set(booking.id, booking);
+      });
+
+      return Array.from(deduped.values());
+    },
     enabled: Boolean(token),
     retry: false,
   });
 
-  const grouped = useMemo(() => {
+  const weekLabel = useMemo(() => {
+    const selected = DateTime.fromISO(dateISO);
+    const weekStart = selected.startOf("week");
+    const weekEnd = selected.endOf("week");
+    return `${weekStart.toFormat("dd LLL")} – ${weekEnd.toFormat("dd LLL yyyy")}`;
+  }, [dateISO]);
+
+  const groupedByDay = useMemo(() => {
     const items = bookingsQ.data || [];
-    const list = [...items].sort((a, b) => a.startAt.localeCompare(b.startAt));
-    return list;
+    const sorted = [...items].sort((a, b) => a.startAt.localeCompare(b.startAt));
+
+    const groups = new Map<string, AdminBooking[]>();
+    sorted.forEach((booking) => {
+      const dayKey = DateTime.fromISO(booking.startAt, { zone: "utc" })
+        .toLocal()
+        .toFormat("yyyy-LL-dd");
+
+      if (!groups.has(dayKey)) groups.set(dayKey, []);
+      groups.get(dayKey)!.push(booking);
+    });
+
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dayISO, dayBookings]) => ({ dayISO, dayBookings }));
   }, [bookingsQ.data]);
 
   async function doLogin(e: React.FormEvent) {
@@ -181,7 +218,7 @@ export default function Admin() {
         <div>
           <div className="text-2xl font-semibold text-brand-ink">Bookings</div>
           <div className="mt-1 text-sm text-brand-sub">
-            {fmtDateHuman(dateISO)}
+            Тиждень: {weekLabel}
           </div>
         </div>
 
@@ -247,15 +284,24 @@ export default function Admin() {
           </div>
         )}
 
-        {!bookingsQ.isLoading && !bookingsQ.error && grouped.length === 0 && (
+        {!bookingsQ.isLoading && !bookingsQ.error && groupedByDay.length === 0 && (
           <div className="rounded-2xl border border-brand-line bg-white p-6 text-brand-sub">
-            No bookings for this date.
+            Немає записів на цей тиждень.
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {grouped.map((b) => (
-            <BookingCard key={b.id} b={b} />
+        <div className="space-y-8">
+          {groupedByDay.map(({ dayISO, dayBookings }) => (
+            <section key={dayISO}>
+              <h2 className="mb-4 text-lg font-semibold text-brand-ink">
+                {fmtDayTitle(dayISO)}
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                {dayBookings.map((b) => (
+                  <BookingCard key={b.id} b={b} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </div>

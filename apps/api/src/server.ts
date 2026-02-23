@@ -260,14 +260,24 @@ app.get("/api/admin/push/stream", async (req, res) => {
 app.get("/api/admin/bookings", requireAdminJWT, async (req, res) => {
 
   const date = String(req.query.date ?? "");
-  if (!date) return res.status(400).send("date is required (YYYY-MM-DD)");
+  const range = String(req.query.range ?? "day");
 
-  const dayStart = DateTime.fromISO(date, { zone: TIMEZONE }).startOf("day").toUTC().toJSDate();
-  const dayEnd = DateTime.fromISO(date, { zone: TIMEZONE }).endOf("day").toUTC().toJSDate();
+  if (!date) return res.status(400).send("date is required (YYYY-MM-DD)");
+  if (!["day", "week"].includes(range)) return res.status(400).send("range must be day or week");
+
+  const targetDate = DateTime.fromISO(date, { zone: TIMEZONE });
+  if (!targetDate.isValid) return res.status(400).send("Invalid date format");
+
+  const periodStart = (range === "week" ? targetDate.startOf("week") : targetDate.startOf("day"))
+    .toUTC()
+    .toJSDate();
+  const periodEnd = (range === "week" ? targetDate.endOf("week") : targetDate.endOf("day"))
+    .toUTC()
+    .toJSDate();
 
   const items = await Booking.find({
-    startAt: { $lte: dayEnd },
-    endAt: { $gte: dayStart },
+    startAt: { $lte: periodEnd },
+    endAt: { $gte: periodStart },
   }).sort({ startAt: 1 }).lean();
 
   /*const items = await Booking.find({

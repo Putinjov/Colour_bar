@@ -53,9 +53,13 @@ export function adminLogin(email: string, password: string) {
   });
 }
 
-export function adminGetBookings(dateISO: string, token: string) {
+export function adminGetBookings(
+  dateISO: string,
+  token: string,
+  range: "day" | "week" = "day"
+) {
   return http<AdminBooking[]>(
-    `/api/admin/bookings?date=${encodeURIComponent(dateISO)}`,
+    `/api/admin/bookings?date=${encodeURIComponent(dateISO)}&range=${range}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
 }
