@@ -1,6 +1,40 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
+function esc(s: unknown) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string)
+  );
+}
+
+function toDateTimeParts(booking: any) {
+  const raw = booking?.startAtISO ?? booking?.startAt;
+  if (!raw) {
+    return { date: booking?.date ?? "", time: booking?.time ?? "" };
+  }
+
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) {
+    return { date: booking?.date ?? "", time: booking?.time ?? "" };
+  }
+
+  const tz = process.env.TIMEZONE ?? "Europe/Dublin";
+
+  return {
+    date: dt.toLocaleDateString("en-IE", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: tz,
+    }),
+    time: dt.toLocaleTimeString("en-IE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: tz,
+    }),
+  };
+}
 
 export async function sendBookingEmail(booking: any) {
   const service = booking?.serviceTitle ?? booking?.service ?? "";
