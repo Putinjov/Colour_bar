@@ -50,7 +50,7 @@ export default function CtaSection() {
               <DarkInfoCard
                 icon="📍"
                 title={lang === "en" ? "Visit Us" : "Адреса"}
-                text="Tullamore, Ireland"
+                text="3 Henry St. Tullamore, R35 VN34"
                 delay={140}
               />
               <DarkInfoCard
@@ -62,7 +62,7 @@ export default function CtaSection() {
               <DarkInfoCard
                 icon="📞"
                 title={lang === "en" ? "Call Us" : "Подзвонити"}
-                text={lang === "en" ? "+353 … (add)" : "+353 … (додати)"}
+                text={lang === "en" ? "+353857842329" : "+353857842329"}
                 delay={340}
               />
             </div>

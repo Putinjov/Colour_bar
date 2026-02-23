@@ -13,8 +13,8 @@ export default function AboutSection() {
         : "Де наука зустрічає мистецтво",
     p:
       lang === "en"
-        ? "One master. Maximum attention. Personalised approach from consultation to final styling."
-        : "Один майстер. Максимум уваги. Персональний підхід від консультації до фінального стайлінгу.",
+        ? "Experienced hairdresser. Maximum attention. Personalised approach from consultation to final styling."
+        : "Досвідчений майстер. Максимум уваги. Персональний підхід від консультації до фінального стайлінгу.",
   };
 
   return (
