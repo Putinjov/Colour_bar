@@ -158,12 +158,17 @@ app.post("/api/bookings", async (req, res) => {
   });
 
   // 3) Дублюємо на пошту (не ламаємо бронювання якщо SMTP впав)
-  sendBookingEmail({
+    try {
+  await sendBookingEmail({
     ...created.toObject(),
     serviceTitle: svc.title,
     startAtISO: start.toISO(),
     endAtISO: end.toISO(),
-  }).catch(console.error);
+  });
+  console.log("[mail] booking email sent");
+} catch (e) {
+  console.error("[mail] booking email failed", e);
+}
 
   // 4) Нотифікація адміна (SSE / push stream)
   await notifyAboutNewBooking({
