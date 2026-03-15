@@ -44,3 +44,44 @@ html {  scroll-behavior: smooth;
     transform: none;
   }
 }
+
+.catalog-marquee {
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.catalog-marquee::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .catalog-marquee {
+    overflow: hidden;
+  }
+
+  .catalog-marquee-track {
+    animation: catalog-marquee-scroll 24s linear infinite;
+  }
+
+  .catalog-marquee:hover .catalog-marquee-track,
+  .catalog-marquee:focus-within .catalog-marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes catalog-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.75rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}

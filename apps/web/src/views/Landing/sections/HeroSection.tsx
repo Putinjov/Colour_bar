@@ -95,6 +95,9 @@ export default function HeroSection() {
                 src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1600&q=80"
                 className="w-full h-[320px] md:h-[440px] object-cover"
                 alt="Salon"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
             </div>
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { useI18n } from "../../../i18n.js";
-import Center from "../components/Center.js";
-import CatalogCategoriesSliderMarquee from "../components/CatalogCategoriesSlider.js";
+import Center from "../../../views/Landing/components/Center.js";
+import CatalogCategoriesMarquee from "../../catalog/components/CatalogCategoriesMarquee.js";
 
 export default function ServicesSection() {
   const { lang } = useI18n();
@@ -16,39 +16,22 @@ export default function ServicesSection() {
   };
 
   return (
-    <section
-      id="services"
-      style={{
-        background: "#F7F4EF",
-      }}
-    >
+    <section id="services" style={{ background: "#F7F4EF" }}>
       <Center>
         <div className="pt-16 text-center">
-          <div
-            data-reveal
-            data-delay="0"
-            className="text-[11px] tracking-[0.18em] text-brand-yellow"
-          >
+          <div data-reveal data-delay="0" className="text-[11px] tracking-[0.18em] text-brand-yellow">
             {t.k}
           </div>
-          <h2
-            data-reveal
-            data-delay="120"
-            className="mt-3 text-3xl md:text-5xl font-light text-brand-ink"
-          >
+          <h2 data-reveal data-delay="120" className="mt-3 text-3xl md:text-5xl font-light text-brand-ink">
             {t.title}
           </h2>
-          <p
-            data-reveal
-            data-delay="220"
-            className="mt-4 text-sm md:text-base text-brand-sub max-w-2xl mx-auto"
-          >
+          <p data-reveal data-delay="220" className="mt-4 text-sm md:text-base text-brand-sub max-w-2xl mx-auto">
             {t.text}
           </p>
         </div>
 
         <div className="mt-10 pb-16">
-          <CatalogCategoriesSliderMarquee speed={9000} />
+          <CatalogCategoriesMarquee />
         </div>
       </Center>
     </section>

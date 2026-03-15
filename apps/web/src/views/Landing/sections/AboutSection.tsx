@@ -55,6 +55,8 @@ export default function AboutSection() {
               className="rounded-sm shadow-soft border-2 border-brand-line bg-brand-surface object-cover w-full h-[260px]"
               alt="About 1"
               src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?auto=format&fit=crop&w=900&q=80"
+              loading="lazy"
+              decoding="async"
             />
             <img
               data-reveal="fade-left"
@@ -62,6 +64,8 @@ export default function AboutSection() {
               className="rounded-sm shadow-soft border-2 border-brand-line bg-brand-surface object-cover w-full h-[260px]"
               alt="About 2"
               src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=900&q=80"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
