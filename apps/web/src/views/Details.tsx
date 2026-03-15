@@ -40,7 +40,7 @@ export default function Details() {
   if (!ready) {
     return (
       <BookingLayout
-        step={3}
+        step={4}
         title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
         subtitle={lang === "en" ? "Enter your details to confirm." : "Введіть дані для підтвердження."}
       >
@@ -68,7 +68,7 @@ export default function Details() {
 
   return (
     <BookingLayout
-      step={3}
+      step={4}
       title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
       subtitle={
         lang === "en"
@@ -177,6 +177,11 @@ export default function Details() {
           </button>
         </div>
       </form>
+
+      <div className="fixed bottom-3 left-3 right-3 md:hidden rounded-2xl border border-brand-line bg-white/95 backdrop-blur p-3 shadow-soft">
+        <div className="text-xs text-brand-sub">{draft.serviceTitle}</div>
+        {when && <div className="text-sm font-semibold text-brand-ink">{format(when, "EEE dd/MM HH:mm")}</div>}
+      </div>
     </BookingLayout>
   );
 }

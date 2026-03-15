@@ -10,7 +10,14 @@
     "dev:web": "npm --workspace apps/web run dev",
     "build": "npm-run-all -s build:api build:web",
     "build:api": "npm --workspace apps/api run build",
-    "build:web": "npm --workspace apps/web run build"
+    "build:web": "npm --workspace apps/web run build",
+    "test": "npm-run-all -s test:api test:web",
+    "test:api": "npm --workspace apps/api run test",
+    "test:web": "npm --workspace apps/web run test",
+    "typecheck": "npm-run-all -s typecheck:api typecheck:web",
+    "typecheck:api": "npm --workspace apps/api run build -- --noEmit",
+    "typecheck:web": "npm --workspace apps/web run typecheck",
+    "lint": "echo \"lint not configured\""
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"

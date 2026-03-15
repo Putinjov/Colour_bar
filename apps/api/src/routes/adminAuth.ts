@@ -1,5 +1,5 @@
 import { Router } from "express";
-import jwt from "jsonwebtoken";
+import { signAdminToken, verifyAdminCredentials } from "../auth.js";
 
 const router = Router();
 
@@ -7,21 +7,10 @@ router.post("/login", async (req, res) => {
   const email = String(req.body?.email || "");
   const password = String(req.body?.password || "");
 
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
-  const JWT_SECRET = process.env.JWT_SECRET || "";
+  const ok = await verifyAdminCredentials(email, password);
+  if (!ok) return res.status(401).json({ error: "Invalid credentials", code: "UNAUTHORIZED" });
 
-  if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !JWT_SECRET) {
-    return res.status(500).json({ error: "Server auth env missing" });
-  }
-
-  if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  const token = jwt.sign({ role: "admin" }, JWT_SECRET, { expiresIn: "7d" });
-  return res.json({ token });
+  return res.json({ token: signAdminToken() });
 });
 
 export default router;
-

@@ -3,56 +3,46 @@ import bcrypt from "bcryptjs";
 import type { Request, Response, NextFunction } from "express";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
-
-if (!JWT_SECRET) {
-  console.error("❌ JWT_SECRET missing");
-}
-if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-  console.error("❌ ADMIN_EMAIL or ADMIN_PASSWORD missing");
-}
-
-// Хешуємо пароль з env один раз на старті (MVP, без БД)
+const ADMIN_PIN = process.env.ADMIN_PIN || "";
 const ADMIN_PASSWORD_HASH = ADMIN_PASSWORD ? bcrypt.hashSync(ADMIN_PASSWORD, 10) : "";
 
 export function signAdminToken() {
-  if (!JWT_SECRET) throw new Error("JWT_SECRET is missing");
-
-  return jwt.sign(
-    { role: "admin" },
-    JWT_SECRET,
-    { expiresIn: (process.env.JWT_EXPIRES_IN || "7d") as any }
-  );
+  if (!JWT_SECRET) throw new Error("JWT_SECRET missing");
+  return jwt.sign({ role: "admin" }, JWT_SECRET, { expiresIn: (process.env.JWT_EXPIRES_IN || "7d") as any });
 }
 
 export async function verifyAdminCredentials(email: string, password: string) {
-  if (!email || !password) return false;
-  if (email !== ADMIN_EMAIL) return false;
+  if (!email || !password || email !== ADMIN_EMAIL) return false;
   return bcrypt.compare(password, ADMIN_PASSWORD_HASH);
 }
 
 export function verifyAdminToken(token: string) {
-  if (!token) throw new Error("Unauthorized");
   const payload = jwt.verify(token, JWT_SECRET) as any;
   if (payload?.role !== "admin") throw new Error("Forbidden");
   return payload;
 }
 
-export function requireAdminJWT(req: Request, res: Response, next: NextFunction) {
-  const header = req.header("authorization") || "";
-  const [scheme, token] = header.split(" ");
+export function requireAdminAuth(req: Request, res: Response, next: NextFunction) {
+  const auth = req.header("authorization") || "";
+  const [scheme, token] = auth.split(" ");
 
-  if (scheme !== "Bearer" || !token) {
-    return res.status(401).json({ error: "Unauthorized" });
+  if (scheme === "Bearer" && token) {
+    try {
+      (req as any).admin = verifyAdminToken(token);
+      return next();
+    } catch {
+      return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
+    }
   }
 
-  try {
-    const payload = verifyAdminToken(token);
-    (req as any).admin = payload;
+  // temporary compatibility layer
+  const pin = req.header("x-admin-pin");
+  if (pin && ADMIN_PIN && pin === ADMIN_PIN) {
+    (req as any).admin = { role: "admin", legacyPin: true };
     return next();
-  } catch {
-    return res.status(401).json({ error: "Unauthorized" });
   }
+
+  return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
 }

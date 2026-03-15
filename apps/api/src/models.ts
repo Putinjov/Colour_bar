@@ -1,6 +1,8 @@
 import mongoose, { Schema, model, Types } from "mongoose";
 
 export type ServiceCategory = "Стрижки" | "Фарбування" | "Відновлення";
+export const BOOKING_STATUSES = ["pending", "confirmed", "declined", "cancelled", "completed", "no_show"] as const;
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
 const ServiceSchema = new Schema(
   {
@@ -18,21 +20,42 @@ export const Service = model("Service", ServiceSchema);
 
 const BookingSchema = new Schema(
   {
-    kind: { type: String, default: "booking" }, // booking | blocked
-    serviceId: { type: Types.ObjectId, ref: "Service" }, // null for blocked
+    serviceId: { type: Types.ObjectId, ref: "Service", required: true },
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
-    clientName: { type: String },
-    phone: { type: String },
+    clientName: { type: String, required: true },
+    phone: { type: String, required: true },
     notes: { type: String },
-    status: { type: String, default: "confirmed" }, // confirmed | cancelled
+    status: { type: String, enum: BOOKING_STATUSES, default: "confirmed" },
   },
   { timestamps: true }
 );
-
 BookingSchema.index({ startAt: 1, endAt: 1, status: 1 });
-
 export const Booking = model("Booking", BookingSchema);
+
+const AvailabilityBlockSchema = new Schema(
+  {
+    startAt: { type: Date, required: true },
+    endAt: { type: Date, required: true },
+    notes: { type: String },
+    active: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+AvailabilityBlockSchema.index({ startAt: 1, endAt: 1, active: 1 });
+export const AvailabilityBlock = model("AvailabilityBlock", AvailabilityBlockSchema);
+
+const NotificationLogSchema = new Schema(
+  {
+    channel: { type: String, required: true },
+    event: { type: String, required: true },
+    status: { type: String, enum: ["success", "failed"], required: true },
+    referenceId: { type: String },
+    message: { type: String },
+  },
+  { timestamps: true }
+);
+export const NotificationLog = model("NotificationLog", NotificationLogSchema);
 
 const PushSubscriptionSchema = new Schema(
   {
