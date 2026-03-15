@@ -1,4 +1,5 @@
 import { Schema, model, Types } from "mongoose";
+export const BOOKING_STATUSES = ["pending", "confirmed", "declined", "cancelled", "completed", "no_show"];
 const ServiceSchema = new Schema({
     title: { type: String, required: true },
     category: { type: String, required: true },
@@ -9,14 +10,46 @@ const ServiceSchema = new Schema({
 }, { timestamps: true });
 export const Service = model("Service", ServiceSchema);
 const BookingSchema = new Schema({
-    kind: { type: String, default: "booking" }, // booking | blocked
-    serviceId: { type: Types.ObjectId, ref: "Service" }, // null for blocked
+    serviceId: { type: Types.ObjectId, ref: "Service", required: true },
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
-    clientName: { type: String },
-    phone: { type: String },
+    clientName: { type: String, required: true },
+    phone: { type: String, required: true },
     notes: { type: String },
-    status: { type: String, default: "confirmed" }, // confirmed | cancelled
+    status: { type: String, enum: BOOKING_STATUSES, default: "confirmed" },
 }, { timestamps: true });
 BookingSchema.index({ startAt: 1, endAt: 1, status: 1 });
 export const Booking = model("Booking", BookingSchema);
+const AvailabilityBlockSchema = new Schema({
+    startAt: { type: Date, required: true },
+    endAt: { type: Date, required: true },
+    notes: { type: String },
+    active: { type: Boolean, default: true },
+}, { timestamps: true });
+AvailabilityBlockSchema.index({ startAt: 1, endAt: 1, active: 1 });
+export const AvailabilityBlock = model("AvailabilityBlock", AvailabilityBlockSchema);
+const NotificationLogSchema = new Schema({
+    channel: { type: String, required: true },
+    event: { type: String, required: true },
+    status: { type: String, enum: ["pending", "success", "failed"], required: true },
+    referenceId: { type: String },
+    message: { type: String },
+    payload: { type: Schema.Types.Mixed },
+    attempts: { type: Number, default: 0 },
+    maxAttempts: { type: Number, default: 3 },
+    nextAttemptAt: { type: Date, default: () => new Date() },
+}, { timestamps: true });
+NotificationLogSchema.index({ status: 1, nextAttemptAt: 1 });
+export const NotificationLog = model("NotificationLog", NotificationLogSchema);
+const PushSubscriptionSchema = new Schema({
+    clientId: { type: String, required: true, unique: true },
+    enabled: { type: Boolean, default: true },
+    userAgent: { type: String },
+    lastSeenAt: { type: Date, default: () => new Date() },
+}, { timestamps: true });
+export const PushSubscription = model("PushSubscription", PushSubscriptionSchema);
+const BookingCreationLockSchema = new Schema({
+    _id: { type: String, required: true },
+    lockedUntil: { type: Date, required: true },
+}, { timestamps: true, versionKey: false });
+export const BookingCreationLock = model("BookingCreationLock", BookingCreationLockSchema);

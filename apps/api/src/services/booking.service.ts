@@ -1,8 +1,47 @@
 import { DateTime } from "luxon";
-import { Booking, type BookingStatus, Service } from "../models.js";
+import { Booking, BookingCreationLock, type BookingStatus, Service } from "../models.js";
 import { canTransitionBookingStatus } from "../domain/bookingStatus.js";
 import { hasBusyConflict } from "./availability.service.js";
 import { parseUtcISO } from "../utils/time.js";
+
+async function acquireBookingCreationLock() {
+  const now = new Date();
+  const lockUntil = new Date(now.getTime() + 5_000);
+
+  const lock = await BookingCreationLock.findOneAndUpdate(
+    {
+      _id: "booking-create-global-lock",
+      $or: [{ lockedUntil: { $lt: now } }, { lockedUntil: { $exists: false } }],
+    },
+    {
+      $set: { lockedUntil: lockUntil },
+    },
+    { upsert: true, new: true }
+  ).lean();
+
+  return Boolean(lock);
+}
+
+async function withBookingCreationLock<T>(fn: () => Promise<T>) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const locked = await acquireBookingCreationLock();
+    if (!locked) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      continue;
+    }
+
+    try {
+      return await fn();
+    } finally {
+      await BookingCreationLock.updateOne(
+        { _id: "booking-create-global-lock" },
+        { $set: { lockedUntil: new Date(0) } }
+      );
+    }
+  }
+
+  throw new Error("BOOKING_LOCK_TIMEOUT");
+}
 
 export async function createBooking(input: {
   serviceId: string;
@@ -18,16 +57,18 @@ export async function createBooking(input: {
   if (!start) throw new Error("INVALID_START");
   const end = start.plus({ minutes: svc.durationMin });
 
-  if (await hasBusyConflict(start, end)) throw new Error("SLOT_BUSY");
+  const created = await withBookingCreationLock(async () => {
+    if (await hasBusyConflict(start, end)) throw new Error("SLOT_BUSY");
 
-  const created = await Booking.create({
-    serviceId: input.serviceId,
-    startAt: start.toJSDate(),
-    endAt: end.toJSDate(),
-    clientName: input.clientName,
-    phone: input.phone,
-    notes: input.notes,
-    status: "confirmed",
+    return Booking.create({
+      serviceId: input.serviceId,
+      startAt: start.toJSDate(),
+      endAt: end.toJSDate(),
+      clientName: input.clientName,
+      phone: input.phone,
+      notes: input.notes,
+      status: "confirmed",
+    });
   });
 
   return { created, service: svc, start, end };

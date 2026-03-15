@@ -49,12 +49,17 @@ const NotificationLogSchema = new Schema(
   {
     channel: { type: String, required: true },
     event: { type: String, required: true },
-    status: { type: String, enum: ["success", "failed"], required: true },
+    status: { type: String, enum: ["pending", "success", "failed"], required: true },
     referenceId: { type: String },
     message: { type: String },
+    payload: { type: Schema.Types.Mixed },
+    attempts: { type: Number, default: 0 },
+    maxAttempts: { type: Number, default: 3 },
+    nextAttemptAt: { type: Date, default: () => new Date() },
   },
   { timestamps: true }
 );
+NotificationLogSchema.index({ status: 1, nextAttemptAt: 1 });
 export const NotificationLog = model("NotificationLog", NotificationLogSchema);
 
 const PushSubscriptionSchema = new Schema(
@@ -68,6 +73,16 @@ const PushSubscriptionSchema = new Schema(
 );
 
 export const PushSubscription = model("PushSubscription", PushSubscriptionSchema);
+
+const BookingCreationLockSchema = new Schema(
+  {
+    _id: { type: String, required: true },
+    lockedUntil: { type: Date, required: true },
+  },
+  { timestamps: true, versionKey: false }
+);
+
+export const BookingCreationLock = model("BookingCreationLock", BookingCreationLockSchema);
 
 export type ServiceDoc = mongoose.InferSchemaType<typeof ServiceSchema> & { _id: Types.ObjectId };
 export type BookingDoc = mongoose.InferSchemaType<typeof BookingSchema> & { _id: Types.ObjectId };

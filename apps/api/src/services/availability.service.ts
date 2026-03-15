@@ -5,6 +5,26 @@ import { dayBoundsUTC } from "../utils/time.js";
 
 const BLOCKING_STATUSES = ["pending", "confirmed"];
 
+type BusyRange = { startAt: Date; endAt: Date };
+
+function mergeBusyRanges(ranges: BusyRange[]) {
+  const sorted = ranges
+    .map((r) => ({ startAt: new Date(r.startAt), endAt: new Date(r.endAt) }))
+    .sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
+
+  const merged: BusyRange[] = [];
+  for (const current of sorted) {
+    const last = merged[merged.length - 1];
+    if (!last || current.startAt >= last.endAt) {
+      merged.push(current);
+      continue;
+    }
+    if (current.endAt > last.endAt) last.endAt = current.endAt;
+  }
+
+  return merged;
+}
+
 export async function getBusyRanges(dateISO: string, timezone: string) {
   const bounds = dayBoundsUTC(dateISO, timezone);
   if (!bounds) return [];
@@ -14,15 +34,19 @@ export async function getBusyRanges(dateISO: string, timezone: string) {
       status: { $in: BLOCKING_STATUSES },
       startAt: { $lte: bounds.end.toJSDate() },
       endAt: { $gte: bounds.start.toJSDate() },
-    }).lean(),
+    })
+      .select({ startAt: 1, endAt: 1 })
+      .lean(),
     AvailabilityBlock.find({
       active: true,
       startAt: { $lte: bounds.end.toJSDate() },
       endAt: { $gte: bounds.start.toJSDate() },
-    }).lean(),
+    })
+      .select({ startAt: 1, endAt: 1 })
+      .lean(),
   ]);
 
-  return [...bookings, ...blocks];
+  return mergeBusyRanges([...bookings, ...blocks]);
 }
 
 export async function getAvailableSlots(input: {
@@ -53,7 +77,12 @@ export async function getAvailableSlots(input: {
       const endUTC = end.toUTC().toJSDate();
       return !busy.some((b) => b.startAt < endUTC && b.endAt > startUTC);
     })
-    .map(({ start, end }) => ({ startAt: start.toUTC().toISO(), endAt: end.toUTC().toISO() }));
+    .map(({ start, end }) => ({
+      startAt: start.toUTC().toISO(),
+      endAt: end.toUTC().toISO(),
+      startAtLocal: start.setZone(timezone).toISO(),
+      endAtLocal: end.setZone(timezone).toISO(),
+    }));
 }
 
 export async function hasBusyConflict(startAt: DateTime, endAt: DateTime) {
@@ -71,3 +100,5 @@ export async function hasBusyConflict(startAt: DateTime, endAt: DateTime) {
   ]);
   return Boolean(booking || block);
 }
+
+export { mergeBusyRanges };

@@ -4,12 +4,12 @@ import { DateTime } from "luxon";
 import catalogRouter from "./routes/catalog.js";
 import adminAuthRouter from "./routes/adminAuth.js";
 import { bookingCreateSchema, adminBlockSchema } from "./validators.js";
-import { Booking, PushSubscription, Service } from "./models.js";
+import { AvailabilityBlock, Booking, PushSubscription, Service } from "./models.js";
 import { requireAdminAuth, verifyAdminToken } from "./auth.js";
 import { createBooking, updateBookingStatus } from "./services/booking.service.js";
 import { createAvailabilityBlock } from "./services/availabilityBlock.service.js";
 import { getAvailableSlots } from "./services/availability.service.js";
-import { notifyBookingCreated } from "./services/notification.service.js";
+import { enqueueBookingCreatedNotification } from "./services/notification.service.js";
 
 const TIMEZONE = process.env.TIMEZONE ?? "Europe/Dublin";
 
@@ -52,7 +52,7 @@ export function createApp() {
 
     try {
       const result = await createBooking(parsed.data);
-      void notifyBookingCreated({
+      void enqueueBookingCreatedNotification({
         bookingId: String(result.created._id),
         payload: {
           ...result.created.toObject(),
@@ -85,6 +85,7 @@ export function createApp() {
       if (error.message === "SERVICE_NOT_FOUND") return res.status(404).json({ error: "Service not found" });
       if (error.message === "INVALID_START") return res.status(400).json({ error: "Invalid startAt" });
       if (error.message === "SLOT_BUSY") return res.status(409).json({ error: "Цей час уже зайнятий" });
+      if (error.message === "BOOKING_LOCK_TIMEOUT") return res.status(503).json({ error: "Booking service busy, retry" });
       throw error;
     }
   });
@@ -125,6 +126,53 @@ export function createApp() {
       clearInterval(keepAlive);
       listeners?.delete(res);
     });
+  });
+
+  app.get("/api/admin/calendar", requireAdminAuth, async (req, res) => {
+    const date = String(req.query.date ?? "");
+    const range = String(req.query.range ?? "day");
+    if (!date) return res.status(400).json({ error: "date is required" });
+    if (!["day", "week"].includes(range)) return res.status(400).json({ error: "range must be day or week" });
+
+    const targetDate = DateTime.fromISO(date, { zone: TIMEZONE });
+    const periodStart = (range === "week" ? targetDate.startOf("week") : targetDate.startOf("day")).toUTC().toJSDate();
+    const periodEnd = (range === "week" ? targetDate.endOf("week") : targetDate.endOf("day")).toUTC().toJSDate();
+
+    const [bookings, blocks] = await Promise.all([
+      Booking.find({ startAt: { $lte: periodEnd }, endAt: { $gte: periodStart } }).sort({ startAt: 1 }).lean(),
+      AvailabilityBlock.find({ active: true, startAt: { $lte: periodEnd }, endAt: { $gte: periodStart } }).sort({ startAt: 1 }).lean(),
+    ]);
+
+    const services = await Service.find({ _id: { $in: bookings.map((x) => x.serviceId) } }).lean();
+    const svcMap = new Map(services.map((svc) => [String(svc._id), svc]));
+
+    const items = [
+      ...bookings.map((b) => ({
+        id: String(b._id),
+        kind: "booking",
+        status: b.status,
+        startAt: DateTime.fromJSDate(b.startAt).toUTC().toISO(),
+        endAt: DateTime.fromJSDate(b.endAt).toUTC().toISO(),
+        startAtLocal: DateTime.fromJSDate(b.startAt).setZone(TIMEZONE).toISO(),
+        endAtLocal: DateTime.fromJSDate(b.endAt).setZone(TIMEZONE).toISO(),
+        clientName: b.clientName,
+        phone: b.phone,
+        notes: b.notes ?? null,
+        service: svcMap.get(String(b.serviceId)) ?? null,
+      })),
+      ...blocks.map((b) => ({
+        id: String(b._id),
+        kind: "block",
+        status: "blocked",
+        startAt: DateTime.fromJSDate(b.startAt).toUTC().toISO(),
+        endAt: DateTime.fromJSDate(b.endAt).toUTC().toISO(),
+        startAtLocal: DateTime.fromJSDate(b.startAt).setZone(TIMEZONE).toISO(),
+        endAtLocal: DateTime.fromJSDate(b.endAt).setZone(TIMEZONE).toISO(),
+        notes: b.notes ?? null,
+      })),
+    ].sort((a, b) => String(a.startAt).localeCompare(String(b.startAt)));
+
+    res.json(items);
   });
 
   app.get("/api/admin/bookings", requireAdminAuth, async (req, res) => {
