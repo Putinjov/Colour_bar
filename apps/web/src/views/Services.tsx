@@ -14,6 +14,8 @@ const cats = [
 
 type CatKey = (typeof cats)[number]["key"];
 
+const intentions = ["Consultation", "Quick refresh", "Full transformation"] as const;
+
 function getId(s: any): string {
   return s?.id ?? s?._id ?? "";
 }
@@ -33,6 +35,7 @@ export default function Services() {
   const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>(
     initialDraft?.serviceId
   );
+  const [intention, setIntention] = useState<string>(initialDraft?.intention ?? intentions[0]);
 
   const list = useMemo(
     () => (data ?? []).filter((s: any) => s.category === cat),
@@ -49,6 +52,7 @@ export default function Services() {
       serviceId: getId(svc),
       serviceTitle: svc.title,
       durationMin: svc.durationMin,
+      intention,
     });
 
     setSelectedServiceId(getId(svc));
@@ -86,7 +90,7 @@ export default function Services() {
 
   return (
     <BookingLayout
-      step={1}
+      step={2}
       title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
       subtitle={
         lang === "en"
@@ -96,6 +100,18 @@ export default function Services() {
     >
       <div className="text-xl md:text-2xl font-semibold">
         {lang === "en" ? "Select Your Service" : "Оберіть послугу"}
+      </div>
+
+      <div className="mt-4">
+        <div className="text-xs font-semibold text-brand-ink/70">{lang === "en" ? "Goal / Intention" : "Мета візиту"}</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {intentions.map((item) => (
+            <button key={item} onClick={() => { setIntention(item); saveDraft({ ...loadDraft(), intention: item }); }}
+              className={["rounded-full border px-3 py-1 text-xs", intention === item ? "bg-brand-purple text-white border-brand-purple" : "bg-white/5 border-white/10"].join(" ")}>
+              {item}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-6">

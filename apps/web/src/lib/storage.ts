@@ -8,6 +8,7 @@ export type BookingDraft = {
   clientName?: string;
   phone?: string;
   notes?: string;
+  intention?: string;
 };
 
 const KEY = "colourbar.bookingDraft.v1";

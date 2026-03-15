@@ -129,7 +129,7 @@ export default function DateTime() {
   if (!can) {
     return (
       <BookingLayout
-        step={2}
+        step={3}
         title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
         subtitle={lang === "en" ? "Pick a date and time that works for you." : "Оберіть дату та зручний час."}
       >
@@ -159,7 +159,7 @@ export default function DateTime() {
 
   return (
     <BookingLayout
-      step={2}
+      step={3}
       title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
       subtitle={
         lang === "en"

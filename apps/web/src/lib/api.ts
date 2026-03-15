@@ -20,7 +20,6 @@ export type BookingCreate = {
 
 // ✅ використовуємо відносний базовий URL (через Vite proxy)
 const API = "";
-const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN ?? "";
 
 async function okJson(r: Response) {
   if (!r.ok) throw new Error(await r.text());
@@ -48,9 +47,9 @@ export async function createBooking(payload: BookingCreate) {
   return okJson(r);
 }
 
-export async function adminListBookings(dateISO: string) {
+export async function adminListBookings(dateISO: string, token: string) {
   const r = await fetch(`${API}/api/admin/bookings?date=${encodeURIComponent(dateISO)}`, {
-    headers: { "x-admin-pin": ADMIN_PIN },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return okJson(r);
 }

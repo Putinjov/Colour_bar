@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n.js";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 export default function BookingLayout({
   step,
@@ -82,11 +82,12 @@ export default function BookingLayout({
   );
 }
 
-function Stepper({ step }: { step: 1 | 2 | 3 }) {
-  const items: { n: 1 | 2 | 3; label: string }[] = [
-    { n: 1, label: "Service" },
-    { n: 2, label: "Date & Time" },
-    { n: 3, label: "Details" },
+function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
+  const items: { n: 1 | 2 | 3 | 4; label: string }[] = [
+    { n: 1, label: "Intention" },
+    { n: 2, label: "Service" },
+    { n: 3, label: "Date & Time" },
+    { n: 4, label: "Details" },
   ];
 
   return (

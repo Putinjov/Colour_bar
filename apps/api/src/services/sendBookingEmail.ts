@@ -1,6 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
 function esc(s: unknown) {
   return String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string)
@@ -59,6 +58,7 @@ export async function sendBookingEmail(booking: any) {
   const from = process.env.MAIL_FROM || "Colour Lab <info@colourlab.ie>";
   const to = process.env.MAIL_TO || "info@colourlab.ie";
 
+  const resend = new Resend(process.env.RESEND_API_KEY || "re_test");
   const { data, error } = await resend.emails.send({
     from,
     to: [to],
