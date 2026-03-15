@@ -24,8 +24,7 @@
   },
   "dependencies": {
     "react-icons": "^5.5.0",
-    "resend": "^6.9.2",
-    "swiper": "^12.1.0"
+    "resend": "^6.9.2"
   },
   "overrides": {
     "minimatch": "^10.2.2"
