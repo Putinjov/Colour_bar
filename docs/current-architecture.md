@@ -1,59 +1,41 @@
-# Current architecture audit (post-refactor stage)
+# Current architecture audit
 
-## Monorepo layout
-- `apps/api`: Express + MongoDB (Mongoose) API.
-- `apps/web`: Vite + React booking/admin UI.
+## Monorepo layout and module paths
+- API app: `apps/api`
+  - Entry: `apps/api/src/server.ts`
+  - Express composition: `apps/api/src/app.ts`
+  - Models: `apps/api/src/models.ts`
+  - Domain rules: `apps/api/src/domain/*`
+  - Services: `apps/api/src/services/*`
+  - Routes: `apps/api/src/routes/*`
+  - Tests: `apps/api/src/__tests__/*`
+- Web app: `apps/web`
+  - Entry: `apps/web/src/main.tsx`
+  - Router: `apps/web/src/router.tsx`
+  - Views: `apps/web/src/views/*`
+  - API clients: `apps/web/src/api/*`
+  - Tests: `apps/web/src/__tests__/*`
 
-## API routes map
-- Public:
-  - `GET /health`
-  - `GET /api/services`
-  - `GET /api/slots?serviceId&date`
-  - `POST /api/bookings`
-  - `GET /api/catalog`
-- Admin auth:
-  - `POST /api/admin/login`
-- Admin protected:
-  - `GET /api/admin/bookings?date&range`
-  - `POST /api/admin/block`
-  - `PATCH /api/admin/bookings/:id/status`
-  - `POST /api/admin/push/subscribe`
-  - `GET /api/admin/push/stream?token&clientId`
+## Booking safety and lifecycle
+- Booking lifecycle statuses: `pending`, `confirmed`, `declined`, `cancelled`, `completed`, `no_show`.
+- Creation now uses a global Mongo lock document (`BookingCreationLock`) to serialize overlap checks and inserts.
+- Conflict checks always include both `Booking` (blocking statuses) and `AvailabilityBlock`.
 
-## Data model map
-- `Service`: catalog service definitions.
-- `Booking`: customer booking lifecycle entity with statuses (`pending|confirmed|declined|cancelled|completed|no_show`).
-- `AvailabilityBlock`: dedicated non-customer blocked-time entity.
-- `NotificationLog`: async notification delivery outcomes.
-- `PushSubscription`: admin SSE/push stream subscriptions.
-
-## Auth flow
-- Primary admin auth is JWT bearer token (`Authorization: Bearer ...`).
-- Transitional compatibility layer supports `x-admin-pin` for protected admin routes when configured.
-- Unauthorized responses normalized as `401 { error, code }`.
-
-## Booking flow
-1. Frontend selects service/date/time and posts `POST /api/bookings` with UTC `startAt`.
-2. `booking.service` resolves service duration and computes end time.
-3. Availability conflict check runs against **both** `Booking` (blocking statuses) and `AvailabilityBlock`.
-4. Booking persists independently of notifications.
-5. Notifications run async; failures are logged to `NotificationLog` and do not rollback booking.
-
-## Slots logic
-- Slot generation uses Europe/Dublin local calendar day and converts to UTC for persisted overlap checks.
-- Busy range lookup includes `Booking` statuses (`pending`, `confirmed`) and active `AvailabilityBlock` ranges.
+## Availability engine
+- Busy ranges are fetched from both `Booking` and `AvailabilityBlock` and merged in `mergeBusyRanges`.
+- Slots are generated from working hours and filtered by merged busy ranges.
+- API returns both UTC and Europe/Dublin local timestamps (`startAt`, `endAt`, `startAtLocal`, `endAtLocal`).
 
 ## Notifications
-- Email sending via `sendBookingEmail` is wrapped by `notification.service`.
-- Result persisted to `NotificationLog` with `success|failed` status.
-- Admin live stream remains best-effort SSE.
+- Booking creation only enqueues notifications (does not await delivery).
+- Queue persistence is done in `NotificationLog` (`pending/success/failed`, attempts, retry scheduling).
+- Background worker (`runNotificationWorkerOnce`) retries failed notifications with backoff.
 
-## Seed logic
-- Startup uses `seedServicesIfEmpty()` (safe default for first run).
-- Explicit deterministic seed reset available via script: `npm --workspace apps/api run seed:reset`.
-- Test strategy should use fixtures/mocks and not rely on startup autoseed side effects.
+## Admin and auth
+- JWT bearer remains primary auth.
+- `x-admin-pin` remains optional compatibility layer.
+- New calendar endpoint: `GET /api/admin/calendar?date=YYYY-MM-DD&range=day|week` returns bookings and availability blocks.
 
-## Backward compatibility notes
-- Legacy “blocked booking” representation has been replaced with `AvailabilityBlock` model.
-- API compatibility preserved at `/api/admin/block` endpoint shape.
-- Legacy `x-admin-pin` is temporary and documented for phased removal.
+## Timezone safety
+- Datastore remains UTC for all persisted datetimes.
+- API boundary adds Europe/Dublin local projection fields where needed.
