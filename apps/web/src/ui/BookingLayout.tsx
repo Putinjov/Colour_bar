@@ -1,143 +1,18 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useI18n } from "../i18n.js";
-
-type Step = 1 | 2 | 3 | 4;
-
-export default function BookingLayout({
-  step,
-  title,
-  subtitle,
-  children,
-}: React.PropsWithChildren<{ step: Step; title: string; subtitle?: string }>) {
-  const nav = useNavigate();
-  const { lang } = useI18n();
-
-  return (
-    <div className="space-y-7">
-      {/* Heading */}
-      <div className="text-center">
-        <div className="text-[11px] tracking-[0.18em] text-[#765487]">
-          {lang === "en" ? "BOOK ONLINE" : "ЗАПИС ОНЛАЙН"}
-        </div>
-
-        <h1 className="mt-3 text-3xl md:text-5xl font-light text-brand-ink">
-          {title}
-        </h1>
-
-        {subtitle && (
-          <p className="mt-2 text-sm md:text-base text-brand-sub max-w-2xl mx-auto">
-            {subtitle}
-          </p>
-        )}
-      </div>
-
-      {/* Content + Sidebar */}
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[2fr_1fr] items-start">
-        {/* Main */}
-        <div className="min-w-0 rounded-[24px] border border-brand-line bg-brand-surface shadow-soft overflow-hidden">
-          <Stepper step={step} />
-          <div className="p-4 md:p-7">{children}</div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="hidden space-y-4 lg:block">
-          <div className="rounded-[24px] border border-brand-line bg-brand-surface shadow-soft p-5">
-            <div className="text-sm font-semibold text-brand-ink">
-              {lang === "en" ? "Visit Us" : "Контакти"}
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <Row icon="📍" title={lang === "en" ? "Location" : "Локація"} text="Tullamore, Ireland" />
-              <Row icon="🕒" title={lang === "en" ? "Hours" : "Години"} text={lang === "en" ? "Tue–Sat: 10:00–18:00" : "Вт–Сб: 10:00–18:00"} />
-              <Row icon="☎️" title={lang === "en" ? "Contact" : "Звʼязок"} text={lang === "en" ? "+353 85 784 2329" : "+353 85 784 2329"} />
-            </div>
-
-            <button
-              onClick={() => nav("/")}
-              className="mt-4 w-full rounded-full border border-brand-line bg-brand-muted px-5 py-3 text-sm font-semibold text-brand-ink hover:brightness-98 transition"
-            >
-              {lang === "en" ? "Back to Home" : "На головну"}
-            </button>
-          </div>
-
-          <div className="rounded-[24px] bg-brand-ink text-white shadow-soft p-6">
-            <div className="text-sm font-semibold">
-              {lang === "en" ? "Cancellation Policy" : "Правила скасування"}
-            </div>
-            <p className="mt-3 text-sm text-white/75 leading-relaxed">
-              {lang === "en"
-                ? "Please give at least 24 hours notice if you need to reschedule or cancel."
-                : "Будь ласка, попередьте мінімум за 24 години, якщо потрібно перенести або скасувати запис."}
-            </p>
-            <p className="mt-3 text-sm text-white/75 leading-relaxed">
-              {lang === "en"
-                ? "Late cancellations may be subject to a fee."
-                : "Пізнє скасування може мати оплату."}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
-  const items: { n: 1 | 2 | 3 | 4; label: string }[] = [
-    { n: 1, label: "Intention" },
-    { n: 2, label: "Service" },
-    { n: 3, label: "Date & Time" },
-    { n: 4, label: "Details" },
-  ];
-
-  return (
-    <div className="px-5 md:px-7 py-4 border-b border-brand-line bg-brand-muted">
-      <div className="flex items-center justify-between">
-        {items.map((it, idx) => {
-          const active = step === it.n;
-          const done = step > it.n;
-
-          return (
-            <div key={it.n} className="flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={[
-                      "h-9 w-9 rounded-full grid place-items-center text-sm font-semibold border",
-                      done
-                        ? "bg-[#e9d8ef] text-brand-ink border-brand-line"
-                        : active
-                        ? "bg-[#765487] text-white border-brand-line"
-                        : "bg-brand-surface text-brand-sub border-brand-line",
-                    ].join(" ")}
-                  >
-                    {it.n}
-                  </div>
-                  <div className="text-xs text-brand-sub hidden sm:block">{it.label}</div>
-                </div>
-
-                {idx < items.length - 1 && (
-                  <div className="hidden sm:block flex-1 mx-4 h-px bg-brand-line" />
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function Row({ icon, title, text }: { icon: string; title: string; text: string }) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="h-9 w-9 rounded-full bg-brand-muted border border-brand-line grid place-items-center">
-        {icon}
-      </div>
-      <div>
-        <div className="text-xs font-semibold text-brand-ink">{title}</div>
-        <div className="text-xs text-brand-sub mt-0.5">{text}</div>
-      </div>
-    </div>
-  );
+export default function BookingLayout({step,title,subtitle,children}:React.PropsWithChildren<{step:1|2|3|4;title:string;subtitle?:string}>) {
+ const {lang}=useI18n(); const l=(uk:string,en:string)=>lang==="uk"?uk:en;
+ const labels=[l("Послуга","Service"),l("Дата й час","Date & time"),l("Ваші дані","Details")];
+ const n=Math.max(1,step-1);
+ const back=step===4?"/datetime":step===3?"/services":"/";
+ return <main className="mx-auto w-full max-w-xl pb-8">
+  <Link to={back} className="inline-flex min-h-[44px] items-center text-sm font-medium text-[#765487]">← {l("Назад","Back")}</Link>
+  <div className="mt-3 flex items-center justify-between text-xs font-medium text-[#765487]"><span>{l("Крок","Step")} {n} {l("з","of")} 3</span><span>{labels[n-1]}</span></div>
+  <div className="mt-2 grid grid-cols-3 gap-2" aria-hidden="true">{labels.map((x,i)=><div key={x} className={"h-1 rounded-full "+(i<n?"bg-[#765487]":"bg-[#e7dfe8]")}/>)}</div>
+  <h1 className="mt-6 font-serif text-4xl font-normal leading-tight tracking-tight text-[#252128]">{title}</h1>
+  {subtitle&&<p className="mt-2 text-sm leading-6 text-brand-sub">{subtitle}</p>}
+  <div className="mt-6 min-w-0">{children}</div>
+  <p className="mt-8 border-t border-brand-line pt-4 text-xs leading-6 text-brand-sub">{l("Colour Lab · 3 Henry St, Tullamore · Потрібна допомога?","Colour Lab · 3 Henry St, Tullamore · Need help?")} <a className="underline" href="tel:+353857842329">+353 85 784 2329</a></p>
+ </main>;
 }

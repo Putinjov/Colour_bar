@@ -9,6 +9,9 @@ export type BookingDraft = {
   phone?: string;
   notes?: string;
   intention?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  confirmed?: boolean;
 };
 
 const KEY = "colourbar.bookingDraft.v1";

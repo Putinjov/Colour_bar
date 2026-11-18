@@ -50,7 +50,7 @@ const dict: Dict = {
 
 function getStoredLang(): Lang {
   const raw = localStorage.getItem("colourbar.lang");
-  return raw === "en" ? "en" : "uk";
+  return raw === "uk" ? "uk" : "en";
 }
 
 const I18nCtx = createContext<{
