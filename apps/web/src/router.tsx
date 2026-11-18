@@ -31,9 +31,9 @@ export const router = createBrowserRouter([
       { path: "datetime", element: lazyRoute(<DateTime />) },
       { path: "details", element: lazyRoute(<Details />) },
       { path: "success", element: lazyRoute(<Success />) },
-      { path: "admin", element: lazyRoute(<Admin />) },
-      { path: "/admin-catalog", element: lazyRoute(<AdminCatalog />) },
-      { path: "/admin/login", element: lazyRoute(<AdminLogin />) },
     ],
   },
+  { path: "/admin", element: lazyRoute(<Admin />) },
+  { path: "/admin-catalog", element: lazyRoute(<AdminCatalog />) },
+  { path: "/admin/login", element: lazyRoute(<AdminLogin />) },
 ]);

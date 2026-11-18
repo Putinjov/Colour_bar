@@ -106,3 +106,9 @@ export function adminUpdateBookingStatus(token: string, id: string, status: stri
     body: JSON.stringify({ status }),
   });
 }
+
+export function adminRemoveBlock(token: string, id: string) {
+  return http<{ ok: boolean }>(`/api/admin/block/${encodeURIComponent(id)}`, {
+    method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+  });
+}
