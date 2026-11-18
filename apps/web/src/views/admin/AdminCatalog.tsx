@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCatalog, updateCatalog, resetCatalog, type Catalog, type Lang } from "../../api/catalog.js";
 import { getServices, type ServiceDTO } from "../../api/services.js";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { getAdminToken } from "../../lib/adminAuth.js";
 import { useI18n } from "../../i18n.js";
 
@@ -134,6 +134,7 @@ function AdminCatalogEditor() {
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <div className="pt-8 flex items-start justify-between gap-4">
         <div>
+          <Link to="/admin" className="mb-2 inline-block text-sm font-semibold text-brand-purple">{lang === "uk" ? "← До календаря" : "← Calendar"}</Link>
           <h1 className="text-2xl font-semibold text-brand-ink">Admin • Catalog</h1>
           <p className="mt-1 text-sm text-brand-sub">
             Каталог зберігається в <b>MongoDB</b>. Тут же робимо привʼязку процедур до реальних{" "}
