@@ -85,3 +85,10 @@ html {  scroll-behavior: smooth;
     transform: none !important;
   }
 }
+
+/* Public editorial theme: avoid hard shadows inherited from the original layout. */
+.client-shell .shadow-soft { box-shadow: 0 8px 28px rgba(37,33,40,.06); }
+.client-shell :is(input,select,textarea) { max-width:100%; min-width:0; }
+.client-shell :is(input[type=date],input[type=time]) { appearance:none; box-sizing:border-box; }
+.client-shell :focus-visible { outline: 2px solid #765487; outline-offset: 3px; }
+.client-shell section[id] { scroll-margin-top: 80px; }

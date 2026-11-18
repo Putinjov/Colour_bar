@@ -1,274 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n.js";
 
-function scrollToId(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 export default function AppShell() {
-  const loc = useLocation();
-  const nav = useNavigate();
   const { lang, setLang } = useI18n();
-
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileMounted, setMobileMounted] = useState(false);
-
-  const onLanding = loc.pathname === "/";
-
-  const linkBase = "text-xs uppercase tracking-[0.14em] transition px-3 py-3";
-  const linkIdle = "text-brand-sub hover:text-brand-ink";
-  const linkActive = "bg-brand-yellow text-brand-ink font-bold";
-
-  function openMobile() {
-    setMobileMounted(true);
-    // наступний тик — щоб transition точно спрацював
-    requestAnimationFrame(() => setMobileOpen(true));
-  }
-
-  function closeMobile() {
-    setMobileOpen(false);
-  }
-
-  function goSection(id: "home" | "services" | "schedule") {
-    closeMobile();
-    if (!onLanding) {
-      nav("/");
-      setTimeout(() => scrollToId(id), 80);
-      return;
-    }
-    scrollToId(id);
-  }
-
-  // Lock body scroll + ESC close + unmount after animation
+  const l = (uk: string, en: string) => lang === "uk" ? uk : en;
+  const loc = useLocation();
+  const [open, setOpen] = useState(false);
+  const landing = loc.pathname === "/";
+  useEffect(() => { setOpen(false); }, [loc.pathname, loc.hash]);
   useEffect(() => {
-    if (!mobileMounted) return;
-
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMobile();
-    };
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [mobileMounted]);
-
-  useEffect(() => {
-    if (!mobileMounted) return;
-    if (mobileOpen) return;
-
-    // дати панелі “виїхати назад” перед unmount
-    const t = window.setTimeout(() => setMobileMounted(false), 220);
-    return () => window.clearTimeout(t);
-  }, [mobileOpen, mobileMounted]);
-
-  return (
-    <div className="min-h-dvh bg-brand-bg text-brand-ink">
-      <header className="sticky top-0 z-50 border-b-2 border-brand-line bg-brand-bg">
-        <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
-          <button
-            onClick={() => {
-              nav("/");
-              closeMobile();
-            }}
-            className="select-none flex items-center"
-            aria-label="Go home"
-          >
-            <img
-              src="/branding/logo-full-outline.svg"
-              alt="Colour Lab"
-              className="hidden md:block h-12 w-auto"
-              draggable={false}
-            />
-            <img
-              src="/branding/logo-compact-outline.svg"
-              alt="Colour Lab"
-              className="block md:hidden h-9 w-auto"
-              draggable={false}
-            />
-          </button>
-
-          {/* Desktop */}
-          <div className="hidden md:flex items-center gap-3">
-            <nav className="hidden md:flex items-center gap-4">
-              <button
-                className={[linkBase, onLanding ? linkActive : linkIdle].join(" ")}
-                onClick={() => goSection("home")}
-              >
-                {lang === "en" ? "Home" : "Головна"}
-              </button>
-              <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("services")}>
-                {lang === "en" ? "Services" : "Послуги"}
-              </button>
-              <button className={[linkBase, linkIdle].join(" ")} onClick={() => goSection("schedule")}>
-                {lang === "en" ? "Schedule" : "Графік"}
-              </button>
-              <button
-                onClick={() => nav("/admin/login")}
-                className="border-2 border-brand-line bg-brand-surface px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] hover:bg-brand-muted transition"
-              >
-                Admin
-              </button>
-            </nav>
-
-            <div className="border-2 border-brand-line bg-brand-surface p-1 flex">
-              <button
-                onClick={() => setLang("uk")}
-                className={[
-                  "px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                  lang === "uk" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
-                ].join(" ")}
-              >
-                UKR
-              </button>
-              <button
-                onClick={() => setLang("en")}
-                className={[
-                  "px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition",
-                  lang === "en" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
-                ].join(" ")}
-              >
-                EN
-              </button>
-            </div>
-
-            <button
-              onClick={() => nav("/services")}
-              className="border-2 border-brand-yellow bg-brand-yellow text-brand-ink px-5 py-2 text-xs font-bold uppercase tracking-[0.08em] hover:brightness-110 transition"
-            >
-              {lang === "en" ? "Book Now" : "Записатися"}
-            </button>
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            type="button"
-            onClick={() => (mobileMounted && mobileOpen ? closeMobile() : openMobile())}
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center border-2 border-brand-line bg-brand-surface"
-            aria-label={lang === "en" ? "Open menu" : "Відкрити меню"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-menu"
-          >
-            <div className="flex flex-col gap-1.5">
-              <span className="block h-0.5 w-5 bg-brand-ink" />
-              <span className="block h-0.5 w-5 bg-brand-ink" />
-              <span className="block h-0.5 w-5 bg-brand-ink" />
-            </div>
-          </button>
+    if (!landing || !loc.hash) return;
+    const id = loc.hash.slice(1);
+    const frame = requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }));
+    return () => cancelAnimationFrame(frame);
+  }, [landing, loc.hash]);
+  const links = [{to:"/services-catalog",text:l("Послуги","Services")},{to:"/#about",text:l("Про майстра","About")},{to:"/#schedule",text:l("Контакти","Contact")}];
+  return <div className={"client-shell min-h-dvh bg-[#faf8f5] text-[#252128] " + (landing ? "pb-20 md:pb-0" : "")}>
+    <header className="sticky top-0 z-40 border-b border-black/5 bg-[#faf8f5]/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-3 sm:px-8">
+        <Link to="/" aria-label="Colour Lab home"><img src="/branding/logo-full-outline.svg" alt="Colour Lab" className="h-9 w-auto sm:h-11" /></Link>
+        <nav className="hidden items-center gap-7 text-sm md:flex">{links.map(x=><Link key={x.to} to={x.to} className="hover:underline">{x.text}</Link>)}</nav>
+        <div className="flex items-center gap-3">
+          <button onClick={()=>setLang(lang==="uk"?"en":"uk")} className="rounded-full border border-black/10 px-3 py-2 text-xs font-medium" aria-label={l("Перемкнути мову","Change language")}>{lang==="uk"?"EN":"UA"}</button>
+          <Link to="/services" className="hidden rounded-full bg-[#262129] px-5 py-3 text-sm font-medium text-white md:block">{l("Записатися","Book now")}</Link>
+          <button className="grid h-10 w-10 place-items-center rounded-full border border-black/10 md:hidden" aria-label={l("Меню","Menu")} aria-expanded={open} onClick={()=>setOpen(!open)}>{open?"✕":"☰"}</button>
         </div>
-      </header>
-
-      {/* Mobile slide-in overlay */}
-      {mobileMounted ? (
-        <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true">
-          {/* Backdrop (fade) */}
-          <button
-            className={[
-              "absolute inset-0 transition-opacity duration-200",
-              mobileOpen ? "bg-black/50 opacity-100" : "bg-black/0 opacity-0",
-            ].join(" ")}
-            aria-label={lang === "en" ? "Close menu" : "Закрити меню"}
-            onClick={closeMobile}
-          />
-
-          {/* Panel (slide) */}
-          <div
-            id="mobile-menu"
-            className={[
-              "absolute right-0 top-0 h-full w-[min(90vw,360px)] border-l-2 border-brand-line bg-brand-bg shadow-2xl",
-              "transform transition-transform duration-200 ease-out",
-              mobileOpen ? "translate-x-0" : "translate-x-full",
-            ].join(" ")}
-          >
-            <div className="flex items-center justify-between border-b-2 border-brand-line px-4 py-3">
-              <div className="text-xs font-bold uppercase tracking-[0.12em]">
-                {lang === "en" ? "Menu" : "Меню"}
-              </div>
-              <button
-                onClick={closeMobile}
-                className="h-10 w-10 grid place-items-center border-2 border-brand-line bg-brand-surface"
-                aria-label={lang === "en" ? "Close menu" : "Закрити меню"}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-3 grid gap-2">
-              <button
-                className={[linkBase, onLanding ? linkActive : linkIdle, "text-left w-full"].join(" ")}
-                onClick={() => goSection("home")}
-              >
-                {lang === "en" ? "Home" : "Головна"}
-              </button>
-              <button className={[linkBase, linkIdle, "text-left w-full"].join(" ")} onClick={() => goSection("services")}>
-                {lang === "en" ? "Services" : "Послуги"}
-              </button>
-              <button className={[linkBase, linkIdle, "text-left w-full"].join(" ")} onClick={() => goSection("schedule")}>
-                {lang === "en" ? "Schedule" : "Графік"}
-              </button>
-
-              <button
-                onClick={() => {
-                  nav("/admin/login");
-                  closeMobile();
-                }}
-                className="mt-2 border-2 border-brand-line bg-brand-surface px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-left"
-              >
-                Admin
-              </button>
-
-              <div className="border-2 border-brand-line bg-brand-surface p-1 flex mt-2">
-                <button
-                  onClick={() => setLang("uk")}
-                  className={[
-                    "flex-1 px-3 py-3 text-xs font-bold uppercase tracking-[0.08em] transition",
-                    lang === "uk" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
-                  ].join(" ")}
-                >
-                  UKR
-                </button>
-                <button
-                  onClick={() => setLang("en")}
-                  className={[
-                    "flex-1 px-3 py-3 text-xs font-bold uppercase tracking-[0.08em] transition",
-                    lang === "en" ? "bg-brand-purple text-white" : "text-brand-sub hover:text-brand-ink",
-                  ].join(" ")}
-                >
-                  EN
-                </button>
-              </div>
-
-              <button
-                onClick={() => {
-                  nav("/services");
-                  closeMobile();
-                }}
-                className="mt-2 border-2 border-brand-yellow bg-brand-yellow text-brand-ink px-5 py-3 text-xs font-bold uppercase tracking-[0.08em]"
-              >
-                {lang === "en" ? "Book Now" : "Записатися"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {onLanding ? (
-        <Outlet />
-      ) : (
-        <div className="mx-auto max-w-6xl px-4 pb-12">
-          <Outlet />
-          <footer className="mt-10 text-center text-[11px] text-brand-sub uppercase tracking-[0.1em]">
-            Colour Lab • Tullamore, Ireland
-          </footer>
-        </div>
-      )}
-    </div>
-  );
+      </div>
+      {open && <nav className="grid gap-1 border-t border-black/5 px-5 pb-4 pt-2 md:hidden">{links.map(x=><Link key={x.to} to={x.to} onClick={()=>setOpen(false)} className="py-3 text-base">{x.text}</Link>)}<Link to="/services" onClick={()=>setOpen(false)} className="py-3">{l("Записатися","Book appointment")}</Link></nav>}
+    </header>
+    {landing ? <Outlet/> : <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-10"><Outlet/></div>}
+    {landing && <div className="fixed inset-x-0 bottom-0 z-30 border-t border-black/5 bg-[#faf8f5]/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden"><Link to="/services" className="block rounded-full bg-[#262129] px-6 py-4 text-center text-sm font-semibold text-white">{l("Записатися онлайн","Book appointment")} <span aria-hidden="true">↗</span></Link></div>}
+  </div>;
 }
