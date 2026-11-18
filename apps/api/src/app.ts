@@ -213,8 +213,20 @@ export function createApp() {
       res.json({ id: String(created._id) });
     } catch (error: any) {
       if (error.message === "INVALID_RANGE") return res.status(400).json({ error: "Invalid range" });
+      if (error.message === "BOOKING_LOCK_TIMEOUT") return res.status(503).json({ error: "Booking service busy, retry" });
       if (error.message === "RANGE_BUSY") return res.status(409).json({ error: "Range overlaps existing booking/block" });
       throw error;
+    }
+  });
+
+  app.delete("/api/admin/block/:id", requireAdminAuth, async (req, res) => {
+    if (!isValidObjectId(req.params.id)) return res.status(400).json({ error: "Invalid block ID" });
+    try {
+      const block = await AvailabilityBlock.findOneAndUpdate({ _id: req.params.id, active: true }, { $set: { active: false } });
+      if (!block) return res.status(404).json({ error: "Block not found" });
+      return res.json({ ok: true });
+    } catch (error) {
+      return res.status(500).json({ error: "Unable to remove block" });
     }
   });
 

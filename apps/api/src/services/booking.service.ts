@@ -22,9 +22,9 @@ async function acquireBookingCreationLock() {
   return Boolean(lock);
 }
 
-async function withBookingCreationLock<T>(fn: () => Promise<T>) {
+export async function withBookingCreationLock<T>(fn: () => Promise<T>) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const locked = await acquireBookingCreationLock();
+    const locked = await acquireBookingCreationLock().catch((error: any) => { if (error?.code === 11000) return false; throw error; });
     if (!locked) {
       await new Promise((resolve) => setTimeout(resolve, 25));
       continue;

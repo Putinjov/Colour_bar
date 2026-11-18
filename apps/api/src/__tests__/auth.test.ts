@@ -22,3 +22,10 @@ describe("admin auth middleware", () => {
     expect((await request(app).put("/api/catalog").set("x-admin-pin", "1234").send({ blocks: [] })).status).toBe(401);
   });
 });
+
+it("rejects anonymous availability mutations", async () => {
+  const { createApp } = await import("../app.js");
+  const app = createApp();
+  expect((await request(app).post("/api/admin/block").send({})).status).toBe(401);
+  expect((await request(app).delete("/api/admin/block/507f191e810c19729de860ea")).status).toBe(401);
+});
