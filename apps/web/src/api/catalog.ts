@@ -1,5 +1,13 @@
 
 
+import { getAdminToken } from "../lib/adminAuth.js";
+
+function adminHeaders() {
+  const token = getAdminToken();
+  if (!token) throw new Error("Admin login required");
+  return { Authorization: `Bearer ${token}` };
+}
+
 export type Lang = "en" | "uk";
 export type ServiceKey = "colouring" | "haircuts" | "repair";
 
@@ -71,6 +79,7 @@ export function getCatalog() {
 export function updateCatalog(payload: Catalog) {
   return http<Catalog>("/api/catalog", {
     method: "PUT",
+    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -78,5 +87,6 @@ export function updateCatalog(payload: Catalog) {
 export function resetCatalog() {
   return http<Catalog>("/api/catalog/reset", {
     method: "POST",
+    headers: adminHeaders(),
   });
 }

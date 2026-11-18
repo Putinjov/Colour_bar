@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireAdminAuth } from "../auth.js";
 import { Catalog } from "../models/catalog.js";
 import seed from "../seed/service.catalog.json" with { type: "json" };
 
@@ -48,7 +49,7 @@ router.get("/", async (_req, res) => {
 });
 
 // PUT /api/catalog (upsert)
-router.put("/", async (req, res) => {
+router.put("/", requireAdminAuth, async (req, res) => {
   try {
     const payload = req.body as AnyObj;
     const err = validateCatalog(payload);
@@ -68,7 +69,7 @@ router.put("/", async (req, res) => {
 });
 
 // POST /api/catalog/reset (скинути до seed)
-router.post("/reset", async (_req, res) => {
+router.post("/reset", requireAdminAuth, async (_req, res) => {
   try {
     const doc = await Catalog.findOneAndUpdate(
       { key: "default" },

@@ -1,10 +1,9 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import mongoose from "mongoose";
 import app from "./app.js";
 import { seedServicesIfEmpty } from "./seed.js";
 import { runNotificationWorkerOnce } from "./services/notification.service.js";
 
-dotenv.config();
 
 const PORT = Number(process.env.PORT ?? 4000);
 const MONGODB_URI = process.env.MONGODB_URI ?? "";
