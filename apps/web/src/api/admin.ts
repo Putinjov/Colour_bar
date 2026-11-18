@@ -25,16 +25,16 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
 
 export type AdminBooking = {
   id: string;
-  kind: "booking" | "blocked";
+  kind: "booking" | "blocked" | "block";
   status: string;
   startAt: string; // ISO
   endAt: string;   // ISO
 
-  clientName: string | null;
-  phone: string | null;
+  clientName?: string | null;
+  phone?: string | null;
   notes: string | null;
 
-  service: null | {
+  service?: null | {
     id: string;
     title: string;
     category: string;
@@ -90,5 +90,19 @@ export function adminPushSubscribe(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(subscription),
+  });
+}
+
+export function adminGetCalendar(dateISO: string, token: string) {
+  return http<AdminBooking[]>(`/api/admin/calendar?date=${encodeURIComponent(dateISO)}&range=month`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function adminUpdateBookingStatus(token: string, id: string, status: string) {
+  return http<{ id: string; status: string }>(`/api/admin/bookings/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
   });
 }

@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
+import { isValidObjectId } from "mongoose";
 import { DateTime } from "luxon";
 import catalogRouter from "./routes/catalog.js";
 import adminAuthRouter from "./routes/adminAuth.js";
 import { bookingCreateSchema, adminBlockSchema } from "./validators.js";
-import { AvailabilityBlock, Booking, PushSubscription, Service } from "./models.js";
+import { AvailabilityBlock, Booking, PushSubscription, Service, BOOKING_STATUSES, type BookingStatus } from "./models.js";
 import { requireAdminAuth, verifyAdminToken } from "./auth.js";
 import { createBooking, updateBookingStatus } from "./services/booking.service.js";
 import { createAvailabilityBlock } from "./services/availabilityBlock.service.js";
@@ -132,15 +133,17 @@ export function createApp() {
     const date = String(req.query.date ?? "");
     const range = String(req.query.range ?? "day");
     if (!date) return res.status(400).json({ error: "date is required" });
-    if (!["day", "week"].includes(range)) return res.status(400).json({ error: "range must be day or week" });
+    if (!["day", "week", "month"].includes(range)) return res.status(400).json({ error: "range must be day, week or month" });
 
     const targetDate = DateTime.fromISO(date, { zone: TIMEZONE });
-    const periodStart = (range === "week" ? targetDate.startOf("week") : targetDate.startOf("day")).toUTC().toJSDate();
-    const periodEnd = (range === "week" ? targetDate.endOf("week") : targetDate.endOf("day")).toUTC().toJSDate();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !targetDate.isValid) return res.status(400).json({ error: "Invalid date" });
+    const unit = range === "month" ? "month" : range === "week" ? "week" : "day";
+    const periodStart = targetDate.startOf(unit).toUTC().toJSDate();
+    const periodEnd = targetDate.startOf(unit).plus(unit === "month" ? { months: 1 } : unit === "week" ? { weeks: 1 } : { days: 1 }).toUTC().toJSDate();
 
     const [bookings, blocks] = await Promise.all([
-      Booking.find({ startAt: { $lte: periodEnd }, endAt: { $gte: periodStart } }).sort({ startAt: 1 }).lean(),
-      AvailabilityBlock.find({ active: true, startAt: { $lte: periodEnd }, endAt: { $gte: periodStart } }).sort({ startAt: 1 }).lean(),
+      Booking.find({ startAt: { $lt: periodEnd }, endAt: { $gt: periodStart } }).sort({ startAt: 1 }).lean(),
+      AvailabilityBlock.find({ active: true, startAt: { $lt: periodEnd }, endAt: { $gt: periodStart } }).sort({ startAt: 1 }).lean(),
     ]);
 
     const services = await Service.find({ _id: { $in: bookings.map((x) => x.serviceId) } }).lean();
@@ -216,8 +219,10 @@ export function createApp() {
   });
 
   app.patch("/api/admin/bookings/:id/status", requireAdminAuth, async (req, res) => {
+    if (!isValidObjectId(req.params.id)) return res.status(400).json({ error: "Invalid booking ID" });
+    if (!BOOKING_STATUSES.includes(req.body?.status as BookingStatus)) return res.status(400).json({ error: "Invalid status" });
     try {
-      const updated = await updateBookingStatus(req.params.id, req.body?.status);
+      const updated = await updateBookingStatus(req.params.id, req.body.status);
       res.json({ id: String(updated._id), status: updated.status });
     } catch (error: any) {
       if (error.message === "BOOKING_NOT_FOUND") return res.status(404).json({ error: "Booking not found" });
