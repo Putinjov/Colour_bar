@@ -103,9 +103,9 @@ function Calendar({ token }: { token: string }) {
       </div>
     </section>
     <section className="mt-4">
-      <div className="flex items-center justify-between gap-2"><h2 className="text-lg font-semibold capitalize">{localDate(selected).setLocale(locale).toFormat("cccc, d MMMM")}</h2>
+      <div className="flex items-center justify-between gap-2"><h2 className="text-lg font-semibold first-letter:uppercase">{localDate(selected).setLocale(locale).toFormat("cccc, d MMMM")}</h2>
       <button className={btn} onClick={() => calendar.refetch()} disabled={calendar.isFetching}>{l("Оновити","Refresh")}</button></div>
-      <button className={btn + " mt-3"} onClick={() => { blockMutation.reset(); setShowBlock(v => !v); }}>{showBlock ? l("Закрити форму","Close form") : l("+ Заблокувати час"," + Block time")}</button>
+      <button className={showBlock ? "mt-3 px-2 py-2 text-sm font-medium text-brand-sub underline" : btn + " mt-3"} aria-expanded={showBlock} onClick={() => { blockMutation.reset(); setShowBlock(v => !v); }}>{showBlock ? l("Закрити форму","Close form") : l("+ Заблокувати час"," + Block time")}</button>
       {showBlock && <BlockForm key={selected} selected={selected} uk={lang === "uk"} busy={blockMutation.isPending} onSave={payload => blockMutation.mutate(payload)} />}
       {blockMutation.error && <p role="alert" className="mt-2 text-red-600">{blockMutation.error.message}</p>}
       {removeBlock.error && <p role="alert" className="mt-2 text-red-600">{removeBlock.error.message}</p>}
@@ -150,8 +150,8 @@ function BlockForm({ selected, uk, busy, onSave }: { selected: string; uk: boole
   const [end,setEnd] = useState("18:00");
   const [notes,setNotes] = useState("");
   const [error,setError] = useState("");
-  const field = "w-full min-w-0 rounded-xl border border-brand-line bg-white px-3 py-2 text-base";
-  return <form className="mt-3 space-y-3 rounded-2xl border border-brand-line bg-white p-4" onSubmit={e => {
+  const field = "block box-border w-full max-w-full min-w-0 appearance-none rounded-xl border border-brand-line bg-white px-3 py-2 text-base min-h-[44px]";
+  return <form className="mt-3 min-w-0 space-y-4 rounded-2xl border border-brand-line bg-white p-4" onSubmit={e => {
     e.preventDefault(); setError("");
     const a = localDate(from + "T" + (allDay ? "00:00" : start));
     const b = allDay ? localDate(to).plus({ days: 1 }).startOf("day") : localDate(to + "T" + end);
@@ -159,13 +159,14 @@ function BlockForm({ selected, uk, busy, onSave }: { selected: string; uk: boole
     onSave({ startAt: a.toUTC().toISO()!, endAt: b.toUTC().toISO()!, notes: notes.trim() || undefined });
   }}>
     <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={allDay} onChange={e=>setAllDay(e.target.checked)} />{l("Цілі дні","Full days")}</label>
-    <div className="grid grid-cols-2 gap-2">
-      <label className="text-sm">{l("Від","From")}<input className={field} type="date" required value={from} onChange={e=>{setFrom(e.target.value); if(e.target.value > to) setTo(e.target.value);}} /></label>
-      <label className="text-sm">{l("До (включно для цілих днів)","To (inclusive for full days)")}<input className={field} type="date" required min={from} value={to} onChange={e=>setTo(e.target.value)} /></label>
-      {!allDay && <><label className="text-sm">{l("Початок","Start")}<input className={field} type="time" required value={start} onChange={e=>setStart(e.target.value)} /></label><label className="text-sm">{l("Кінець","End")}<input className={field} type="time" required value={end} onChange={e=>setEnd(e.target.value)} /></label></>}
+    <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+      <label className="block min-w-0 space-y-1 text-sm"><span className="block">{l("Від","From")}</span><input className={field} type="date" required value={from} onChange={e=>{setFrom(e.target.value); if(e.target.value > to) setTo(e.target.value);}} /></label>
+      <label className="block min-w-0 space-y-1 text-sm"><span className="block">{l("До","To")}</span><input className={field} type="date" required min={from} value={to} onChange={e=>setTo(e.target.value)} /></label>
+      {!allDay && <><label className="block min-w-0 space-y-1 text-sm"><span className="block">{l("Початок","Start")}</span><input className={field} type="time" required value={start} onChange={e=>setStart(e.target.value)} /></label><label className="block min-w-0 space-y-1 text-sm"><span className="block">{l("Кінець","End")}</span><input className={field} type="time" required value={end} onChange={e=>setEnd(e.target.value)} /></label></>}
     </div>
-    <label className="block text-sm">{l("Причина (необов’язково)","Reason (optional)")}<input className={field} maxLength={200} value={notes} onChange={e=>setNotes(e.target.value)} /></label>
+    {allDay && <p className="text-xs text-brand-sub">{l("Обидві дати включно.","Both dates are inclusive.")}</p>}
+    <label className="block min-w-0 text-sm">{l("Причина (необов’язково)","Reason (optional)")}<input className={field} maxLength={200} value={notes} onChange={e=>setNotes(e.target.value)} /></label>
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-    <button className="rounded-full bg-brand-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={busy}>{l("Заблокувати","Block")}</button>
+    <button className="w-full rounded-xl bg-brand-ink px-4 py-3 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto" disabled={busy}>{l("Заблокувати","Block")}</button>
   </form>;
 }
