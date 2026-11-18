@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCatalog, updateCatalog, resetCatalog, type Catalog, type Lang } from "../../api/catalog.js";
 import { getServices, type ServiceDTO } from "../../api/services.js";
+import { Navigate } from "react-router-dom";
+import { getAdminToken } from "../../lib/adminAuth.js";
 import { useI18n } from "../../i18n.js";
 
 function Input({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -50,6 +52,11 @@ function Select({
 }
 
 export default function AdminCatalog() {
+  if (!getAdminToken()) return <Navigate to="/admin/login" replace />;
+  return <AdminCatalogEditor />;
+}
+
+function AdminCatalogEditor() {
   const qc = useQueryClient();
   const { lang } = useI18n();
   const L = (lang === "en" ? "en" : "uk") as Lang;
@@ -132,12 +139,13 @@ export default function AdminCatalog() {
             Каталог зберігається в <b>MongoDB</b>. Тут же робимо привʼязку процедур до реальних{" "}
             <b>Service</b> для автоматичного запису.
           </p>
+          {(saveMut.error || resetMut.error) && <div role="alert" className="mt-2 text-sm text-red-600">{String((saveMut.error || resetMut.error)?.message)}</div>}
           {dirtyHint && <div className="mt-2 text-xs text-brand-sub">{dirtyHint}</div>}
         </div>
 
         <div className="flex gap-2">
           <button
-            onClick={() => resetMut.mutate()}
+            onClick={() => { if (window.confirm("Reset catalog to defaults?")) resetMut.mutate(); }}
             className="rounded-full border border-brand-line bg-brand-surface px-4 py-2 text-xs font-semibold hover:bg-brand-muted transition"
           >
             Reset

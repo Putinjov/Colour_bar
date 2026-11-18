@@ -5,7 +5,6 @@ import type { Request, Response, NextFunction } from "express";
 const JWT_SECRET = process.env.JWT_SECRET || "";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
-const ADMIN_PIN = process.env.ADMIN_PIN || "";
 const ADMIN_PASSWORD_HASH = ADMIN_PASSWORD ? bcrypt.hashSync(ADMIN_PASSWORD, 10) : "";
 
 export function signAdminToken() {
@@ -14,12 +13,12 @@ export function signAdminToken() {
 }
 
 export async function verifyAdminCredentials(email: string, password: string) {
-  if (!email || !password || email !== ADMIN_EMAIL) return false;
+  if (!ADMIN_PASSWORD_HASH || !email || !password || email !== ADMIN_EMAIL) return false;
   return bcrypt.compare(password, ADMIN_PASSWORD_HASH);
 }
 
 export function verifyAdminToken(token: string) {
-  const payload = jwt.verify(token, JWT_SECRET) as any;
+  const payload = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as any;
   if (payload?.role !== "admin") throw new Error("Forbidden");
   return payload;
 }
@@ -35,13 +34,6 @@ export function requireAdminAuth(req: Request, res: Response, next: NextFunction
     } catch {
       return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
     }
-  }
-
-  // temporary compatibility layer
-  const pin = req.header("x-admin-pin");
-  if (pin && ADMIN_PIN && pin === ADMIN_PIN) {
-    (req as any).admin = { role: "admin", legacyPin: true };
-    return next();
   }
 
   return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
