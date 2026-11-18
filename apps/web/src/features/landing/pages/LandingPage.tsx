@@ -14,13 +14,13 @@ export default function LandingPage() {
   const l = (uk:string,en:string)=>lang==="uk"?uk:en;
   const catalog = useQuery({queryKey:["catalog",lang],queryFn:getCatalog,staleTime:300000});
   return <main className="overflow-hidden">
-    <section id="home" className="mx-auto grid max-w-7xl items-center gap-7 px-5 pb-12 pt-8 md:grid-cols-[0.95fr_1.05fr] md:gap-12 md:px-8 md:py-14">
+    <section id="home" className="mx-auto grid max-w-7xl items-center gap-5 px-5 pb-12 pt-6 md:grid-cols-[0.95fr_1.05fr] md:gap-12 md:px-8 md:py-14">
       <div className="md:py-10">
         <p className={eyebrow}>Colour Lab · Tullamore, Ireland</p>
-        <h1 className={heading+" mt-5 text-[clamp(2.8rem,6vw,5.6rem)]"}>{l("Колір, що підкреслює","Colour that feels")} <em className="font-normal text-[#765487]">{l("вас.","like you.")}</em></h1>
-        <p className="mt-5 max-w-md text-base leading-7 text-[#6b626c]">{l("Індивідуальне фарбування, сучасні стрижки та професійний догляд за волоссям у Талламорі.","Personalised colour, precision cuts and restorative hair care in Tullamore.")}</p>
-        <div className="mt-7 flex flex-wrap items-center gap-4"><Link className={primary} to="/services">{l("Записатися онлайн","Book appointment")} ↗</Link><Link className="border-b border-[#765487] pb-1 text-sm font-medium" to="/services-catalog">{l("Послуги та ціни","Services & prices")}</Link></div>
-        <p className="mt-6 text-xs tracking-wide text-[#6b626c]">{l("Індивідуальний підхід · За попереднім записом","One-to-one appointments · By appointment")}</p>
+        <h1 className={heading+" mt-4 text-[clamp(2.8rem,6vw,5.6rem)]"}>{l("Колір, що підкреслює","Colour that feels")} <em className="font-normal text-[#765487]">{l("вас.","like you.")}</em></h1>
+        <p className="mt-4 max-w-md text-base leading-7 text-[#6b626c]">{l("Індивідуальне фарбування, сучасні стрижки та професійний догляд за волоссям у Талламорі.","Personalised colour, precision cuts and restorative hair care in Tullamore.")}</p>
+        <div id="hero-booking" className="mt-5 flex flex-wrap items-center gap-4"><Link className={primary} to="/services">{l("Записатися онлайн","Book appointment")} ↗</Link><Link className="border-b border-[#765487] pb-1 text-sm font-medium" to="/services-catalog">{l("Послуги та ціни","Services & prices")}</Link></div>
+        <p className="mt-4 text-xs tracking-wide text-[#6b626c]">{l("Індивідуальний підхід · За попереднім записом","One-to-one appointments · By appointment")}</p>
       </div>
       <div className="relative overflow-hidden rounded-[28px] bg-[#e9dfe5]"><img src={image} alt={l("Ілюстрація перукарського догляду","Hair studio imagery")} className="aspect-[5/4] w-full object-cover md:aspect-[4/5] md:max-h-[650px]" fetchPriority="high" decoding="async"/></div>
     </section>

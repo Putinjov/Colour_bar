@@ -71,12 +71,12 @@ export default function ServicesCatalog() {
                 <div className="h-12 w-12 rounded-full bg-brand-muted border border-brand-line grid place-items-center">
                   ✨
                 </div>
-                <div className="text-xs tracking-[0.18em] text-brand-yellow font-semibold">
+                <div className="text-xs tracking-[0.18em] text-[#765487] font-semibold">
                   {b.pill[L]}
                 </div>
               </div>
 
-              <h2 className="mt-6 text-3xl md:text-5xl font-light text-brand-ink leading-tight">
+              <h2 className="mt-6 font-serif text-3xl md:text-5xl font-normal text-brand-ink leading-tight">
                 {b.title[L]}
               </h2>
 
@@ -87,7 +87,7 @@ export default function ServicesCatalog() {
               <div className="mt-7 flex flex-wrap gap-3">
                 {/* CTA: відкриває booking сторінку без прив’язки до конкретної процедури */}
                 <button
-                  onClick={() => nav("/services")}
+                  onClick={() => nav("/services?category=" + encodeURIComponent(({colouring:"Фарбування",haircuts:"Стрижки",repair:"Відновлення"} as const)[b.key]))}
                   className="inline-flex items-center gap-3 rounded-full bg-brand-ink text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition"
                 >
                   {b.cta[L]}
@@ -155,8 +155,7 @@ export default function ServicesCatalog() {
                     ))}
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between gap-3">
-                  </div>
+                  <div className="mt-6">{canBook && <button onClick={() => nav("/services?serviceId=" + encodeURIComponent(it.serviceId!))} className="w-full rounded-full bg-brand-ink px-4 py-3 text-sm font-semibold text-white">{lang === "en" ? "Book this service" : "Записатися"}</button>}</div>
                 </div>
               );
             })}

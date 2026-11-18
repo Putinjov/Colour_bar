@@ -1,187 +1,41 @@
-import React, { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
+import React,{useState} from "react";
+import {Navigate,useNavigate} from "react-router-dom";
+import {useForm} from "react-hook-form";
 import BookingLayout from "../ui/BookingLayout.js";
-import { loadDraft, saveDraft, clearDraft } from "../lib/storage.js";
-import { createBooking } from "../lib/api.js";
-import { useI18n } from "../i18n.js";
-
-const schema = z.object({
-  clientName: z.string().min(2).max(60),
-  phone: z.string().min(6).max(30),
-  notes: z.string().max(300).optional(),
-});
-type FormVals = z.infer<typeof schema>;
-
-export default function Details() {
-  const nav = useNavigate();
-  const { lang } = useI18n();
-  const draft = loadDraft();
-
-  const ready = Boolean(draft.serviceId && draft.startAt && draft.endAt);
-
-  const when = useMemo(() => (draft.startAt ? new Date(draft.startAt) : null), [draft.startAt]);
-  const end = useMemo(() => (draft.endAt ? new Date(draft.endAt) : null), [draft.endAt]);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<FormVals>({
-    defaultValues: {
-      clientName: draft.clientName ?? "",
-      phone: draft.phone ?? "",
-      notes: draft.notes ?? "",
-    },
-  });
-
-  if (!ready) {
-    return (
-      <BookingLayout
-        step={4}
-        title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
-        subtitle={lang === "en" ? "Enter your details to confirm." : "Введіть дані для підтвердження."}
-      >
-        <div className="text-xl font-semibold text-brand-ink">
-          {lang === "en" ? "No selected time slot" : "Немає вибраного слоту"}
-        </div>
-
-        <p className="mt-2 text-sm text-brand-sub">
-          {lang === "en"
-            ? "Please go back and choose a time first."
-            : "Поверніться назад і оберіть час."}
-        </p>
-
-        <div className="mt-6">
-          <button
-            onClick={() => nav("/datetime")}
-            className="rounded-full bg-brand-ink text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition"
-          >
-            {lang === "en" ? "Choose Time" : "Обрати час"}
-          </button>
-        </div>
-      </BookingLayout>
-    );
-  }
-
-  return (
-    <BookingLayout
-      step={4}
-      title={lang === "en" ? "Schedule Your Appointment" : "Записатися на процедуру"}
-      subtitle={
-        lang === "en"
-          ? "Enter your details and confirm — we’ll reserve your slot instantly."
-          : "Введіть дані та підтвердіть — ми одразу зарезервуємо ваш слот."
-      }
-    >
-      <div className="text-xl md:text-2xl font-semibold text-brand-ink">
-        {lang === "en" ? "Your Details" : "Ваші дані"}
-      </div>
-
-      {/* Summary bar like premium UI */}
-      <div className="mt-4 rounded-[18px] border border-brand-line bg-brand-muted p-4">
-        <div className="text-sm font-semibold text-brand-ink">{draft.serviceTitle}</div>
-        {when && (
-          <div className="mt-1 text-sm text-brand-sub">
-            {format(when, "EEE dd/MM")} • {format(when, "HH:mm")}
-            {end ? ` – ${format(end, "HH:mm")}` : ""}
-          </div>
-        )}
-      </div>
-
-      <form
-        className="mt-6 space-y-4"
-        onSubmit={handleSubmit(async (vals) => {
-          const parsed = schema.safeParse(vals);
-          if (!parsed.success) {
-            alert(lang === "en" ? "Please check your input." : "Перевірте введені дані.");
-            return;
-          }
-
-          saveDraft({ ...draft, ...parsed.data });
-
-          try {
-            await createBooking({
-              serviceId: draft.serviceId!,
-              startAt: draft.startAt!,
-              clientName: parsed.data.clientName,
-              phone: parsed.data.phone,
-              notes: parsed.data.notes || undefined,
-            });
-
-            const last = loadDraft();
-            clearDraft();
-            saveDraft(last); // keep summary for success page
-            nav("/success");
-          } catch (e: any) {
-            alert(e?.message || (lang === "en" ? "Booking failed" : "Не вдалося створити запис"));
-          }
-        })}
-      >
-        <div className="grid gap-3 md:grid-cols-2">
-          <label className="block">
-            <div className="text-xs font-semibold text-brand-sub mb-1">
-              {lang === "en" ? "Name" : "Ім’я"}
-            </div>
-            <input
-              className="w-full rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm outline-none focus:border-brand-purple"
-              {...register("clientName")}
-              placeholder={lang === "en" ? "e.g. Marina" : "Напр. Маріна"}
-            />
-          </label>
-
-          <label className="block">
-            <div className="text-xs font-semibold text-brand-sub mb-1">
-              {lang === "en" ? "Phone" : "Телефон"}
-            </div>
-            <input
-              className="w-full rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm outline-none focus:border-brand-purple"
-              {...register("phone")}
-              placeholder={lang === "en" ? "+353 ..." : "+353 ..."}
-            />
-          </label>
-        </div>
-
-        <label className="block">
-          <div className="text-xs font-semibold text-brand-sub mb-1">
-            {lang === "en" ? "Notes (optional)" : "Коментар (опційно)"}
-          </div>
-          <textarea
-            className="w-full rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm outline-none focus:border-brand-purple min-h-[110px]"
-            {...register("notes")}
-            placeholder={
-              lang === "en"
-                ? "Anything we should know? (hair length, preferences...)"
-                : "Напр. довжина волосся, побажання…"
-            }
-          />
-        </label>
-
-        <div className="mt-2 flex flex-col sm:flex-row gap-3 justify-between">
-          <button
-            type="button"
-            onClick={() => nav("/datetime")}
-            className="rounded-full border border-brand-line bg-brand-muted px-6 py-3 text-sm font-semibold text-brand-ink hover:brightness-98 transition"
-          >
-            {lang === "en" ? "Back" : "Назад"}
-          </button>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="rounded-full bg-brand-ink text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (lang === "en" ? "Booking…" : "Бронюємо…") : (lang === "en" ? "Confirm Booking" : "Підтвердити запис")}
-          </button>
-        </div>
-      </form>
-
-      <div className="fixed bottom-3 left-3 right-3 md:hidden rounded-2xl border border-brand-line bg-white/95 backdrop-blur p-3 shadow-soft">
-        <div className="text-xs text-brand-sub">{draft.serviceTitle}</div>
-        {when && <div className="text-sm font-semibold text-brand-ink">{format(when, "EEE dd/MM HH:mm")}</div>}
-      </div>
-    </BookingLayout>
-  );
+import {loadDraft,saveDraft} from "../lib/storage.js";
+import {createBooking,getSlots} from "../lib/api.js";
+import {useI18n} from "../i18n.js";
+import {bookingWindow,salonDate} from "../features/booking/bookingDates.js";
+type FormVals={clientName:string;phone:string;notes:string};
+export default function Details(){
+ const nav=useNavigate(),{lang}=useI18n();const l=(uk:string,en:string)=>lang==="uk"?uk:en;
+ const [draft]=useState(loadDraft);const [error,setError]=useState("");
+ const {register,handleSubmit,formState:{isSubmitting,errors}}=useForm<FormVals>({defaultValues:{clientName:draft.clientName??"",phone:draft.phone??"",notes:draft.notes??""}});
+ if(draft.confirmed)return <Navigate to="/success" replace/>;
+ if(!draft.serviceId||!draft.dateISO||!draft.startAt||!draft.endAt)return <Navigate to="/datetime" replace/>;
+ const field="block w-full min-w-0 rounded-xl border border-brand-line bg-white px-4 py-3 text-base";
+ const when=salonDate(draft.startAt).setLocale(lang==="uk"?"uk-UA":"en-IE");
+ return <BookingLayout step={4} title={l("Ваші дані","Your details")} subtitle={l("Залишилося підтвердити запис.","Just one step to confirm your appointment.")}>
+ <div className="rounded-2xl bg-[#eee4f0] p-4"><p className="font-semibold">{draft.serviceTitle}</p><p className="mt-1 text-sm text-[#765487]">{when.toFormat("d MMMM · HH:mm")} – {salonDate(draft.endAt).toFormat("HH:mm")}</p>{typeof draft.priceFrom==="number"&&<p className="mt-1 text-sm text-brand-sub">{l("від","from")} €{draft.priceFrom}</p>}</div>
+ <form className="mt-6 space-y-4" onSubmit={handleSubmit(async vals=>{
+ setError("");const clientName=vals.clientName.trim(),phone=vals.phone.trim(),notes=vals.notes.trim();
+ if(clientName.length<2||phone.length<6){setError(l("Перевірте ім’я та телефон.","Check your name and phone."));return;}
+ saveDraft({...draft,clientName,phone,notes,confirmed:false});
+ try{
+ const w=bookingWindow();const slots=draft.dateISO!>=w.earliest&&w.days.includes(draft.dateISO!)?await getSlots(draft.serviceId!,draft.dateISO!):[];
+ if(!slots.some(s=>s.startAt===draft.startAt&&s.endAt===draft.endAt)){setError(l("Цей час більше недоступний. Поверніться й оберіть інший.","This time is no longer available. Go back and select another."));return;}
+ await createBooking({serviceId:draft.serviceId!,startAt:draft.startAt!,clientName,phone,notes:notes||undefined});
+ saveDraft({...draft,clientName:undefined,phone:undefined,notes:undefined,confirmed:true});
+ nav("/success",{replace:true});
+ }catch{setError(l("Не вдалося підтвердити запис. Перевірте доступність часу або зв’яжіться з майстром перед повторною спробою.","Unable to confirm. Check availability or contact the studio before trying again."))}
+ })}>
+ <label className="block text-sm font-medium">{l("Ваше ім’я","Your name")}<input className={field+" mt-1"} autoComplete="name" required {...register("clientName",{required:true,minLength:2,maxLength:60})}/></label>
+ {errors.clientName&&<p className="text-xs text-red-700">{l("Вкажіть ім’я (2–60 символів).","Enter a name (2–60 characters).")}</p>}
+ <label className="block text-sm font-medium">{l("Номер телефону","Phone number")}<input className={field+" mt-1"} type="tel" autoComplete="tel" required placeholder="+353…" {...register("phone",{required:true,minLength:6,maxLength:30})}/></label>
+ {errors.phone&&<p className="text-xs text-red-700">{l("Перевірте номер телефону.","Check the phone number.")}</p>}
+ <label className="block text-sm font-medium">{l("Коментар (необов’язково)","Notes (optional)")}<textarea className={field+" mt-1"} rows={3} maxLength={300} {...register("notes",{maxLength:300})}/></label>
+ <p className="text-xs leading-5 text-brand-sub">{l("Якщо потрібно змінити або скасувати запис, повідомте нас щонайменше за 24 години.","If you need to change or cancel, please contact us at least 24 hours in advance.")}</p>
+ {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+ <button disabled={isSubmitting} className="w-full rounded-full bg-[#262129] px-6 py-4 text-sm font-semibold text-white disabled:opacity-40">{isSubmitting?l("Підтверджуємо…","Confirming…"):l("Підтвердити запис","Confirm booking")}</button>
+ </form></BookingLayout>
 }
