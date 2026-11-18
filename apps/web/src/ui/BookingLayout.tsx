@@ -17,7 +17,7 @@ export default function BookingLayout({
     <div className="space-y-7">
       {/* Heading */}
       <div className="text-center">
-        <div className="text-[11px] tracking-[0.18em] text-brand-yellow">
+        <div className="text-[11px] tracking-[0.18em] text-[#765487]">
           {lang === "en" ? "BOOK ONLINE" : "ЗАПИС ОНЛАЙН"}
         </div>
 
@@ -33,15 +33,15 @@ export default function BookingLayout({
       </div>
 
       {/* Content + Sidebar */}
-      <div className="grid gap-5 lg:grid-cols-[2fr_1fr] items-start">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[2fr_1fr] items-start">
         {/* Main */}
-        <div className="rounded-[24px] border border-brand-line bg-brand-surface shadow-soft overflow-hidden">
+        <div className="min-w-0 rounded-[24px] border border-brand-line bg-brand-surface shadow-soft overflow-hidden">
           <Stepper step={step} />
-          <div className="p-5 md:p-7">{children}</div>
+          <div className="p-4 md:p-7">{children}</div>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-4">
+        <div className="hidden space-y-4 lg:block">
           <div className="rounded-[24px] border border-brand-line bg-brand-surface shadow-soft p-5">
             <div className="text-sm font-semibold text-brand-ink">
               {lang === "en" ? "Visit Us" : "Контакти"}
@@ -50,7 +50,7 @@ export default function BookingLayout({
             <div className="mt-4 space-y-3">
               <Row icon="📍" title={lang === "en" ? "Location" : "Локація"} text="Tullamore, Ireland" />
               <Row icon="🕒" title={lang === "en" ? "Hours" : "Години"} text={lang === "en" ? "Tue–Sat: 10:00–18:00" : "Вт–Сб: 10:00–18:00"} />
-              <Row icon="☎️" title={lang === "en" ? "Contact" : "Звʼязок"} text={lang === "en" ? "Phone / Instagram (add)" : "Телефон / Instagram (додати)"} />
+              <Row icon="☎️" title={lang === "en" ? "Contact" : "Звʼязок"} text={lang === "en" ? "+353 85 784 2329" : "+353 85 784 2329"} />
             </div>
 
             <button
@@ -105,9 +105,9 @@ function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
                     className={[
                       "h-9 w-9 rounded-full grid place-items-center text-sm font-semibold border",
                       done
-                        ? "bg-brand-yellow text-brand-ink border-brand-line"
+                        ? "bg-[#e9d8ef] text-brand-ink border-brand-line"
                         : active
-                        ? "bg-brand-purple text-white border-brand-line"
+                        ? "bg-[#765487] text-white border-brand-line"
                         : "bg-brand-surface text-brand-sub border-brand-line",
                     ].join(" ")}
                   >
