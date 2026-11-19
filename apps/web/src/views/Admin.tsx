@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
@@ -8,6 +8,10 @@ import { getServices } from "../lib/api.js";
 import { clearAdminToken, getAdminToken } from "../lib/adminAuth.js";
 import { useI18n } from "../i18n.js";
 import { actionsForStatus, activeBooking, itemsOnDay, localDate, monthDays, SALON_ZONE } from "../features/admin/calendar.js";
+import {
+  enableAdminWebPush,
+  isAdminWebPushEnabled,
+} from "../features/admin/webPush.js";
 
 const statuses: Record<string, [string, string]> = {
   pending: ["Очікує", "Pending"], confirmed: ["Підтверджено", "Confirmed"],
@@ -34,6 +38,20 @@ function Calendar({ token }: { token: string }) {
   const [month, setMonth] = useState(localDate(today).startOf("month").toISODate()!);
   const [loggedOut, setLoggedOut] = useState(false);
   const qc = useQueryClient();
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushMessage, setPushMessage] = useState("");
+  const [pushEnabled, setPushEnabled] = useState(false);
+  useEffect(() => {
+  let active = true;
+    isAdminWebPushEnabled()
+    .then((enabled) => {
+      if (active) setPushEnabled(enabled);
+    })
+    .catch(console.warn);
+    return () => {
+    active = false;
+  };
+}, []);
   const [installHelp, setInstallHelp] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const [editing, setEditing] = useState<AdminBooking | 'new' | null>(null);
@@ -66,7 +84,26 @@ function Calendar({ token }: { token: string }) {
   }
   if (loggedOut || calendar.error?.message === "Unauthorized" || status.error?.message === "Unauthorized" || blockMutation.error?.message === "Unauthorized" || removeBlock.error?.message === "Unauthorized" || saveAppointment.error?.message === "Unauthorized") return <Navigate to="/admin/login" replace />;
   const labels = lang === "uk" ? ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  return <main className="mx-auto max-w-5xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6">
+ async function handleEnablePush() {
+  setPushLoading(true);
+  setPushMessage("");
+
+  try {
+    await enableAdminWebPush(token);
+    setPushEnabled(true);
+    setPushMessage(l(
+      "Сповіщення увімкнено",
+      "Notifications enabled"
+    ));
+  } catch (error) {
+    setPushMessage(
+      error instanceof Error ? error.message : "Push subscription failed"
+    );
+  } finally {
+    setPushLoading(false);
+  }
+}
+ return <main className="mx-auto max-w-5xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6">
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div><h1 className="text-2xl font-semibold text-brand-ink">{l("Календар", "Calendar")}</h1>
       <p className="text-sm text-brand-sub">Colour Lab · {l("Кабінет майстра", "Studio manager")}</p></div>
@@ -74,6 +111,24 @@ function Calendar({ token }: { token: string }) {
         <button className={btn} onClick={() => setLang(lang === "uk" ? "en" : "uk")}>{lang === "uk" ? "EN" : "UA"}</button>
         <Link className={btn} to="/admin-catalog">{l("Послуги", "Services")}</Link>
         <button className={btn} onClick={logout}>{l("Вийти", "Logout")}</button>
+        <button
+  className={btn}
+  type="button"
+  disabled={pushLoading || pushEnabled}
+  onClick={handleEnablePush}
+>
+  {pushLoading
+    ? l("Підключення...", "Connecting...")
+    : pushEnabled
+      ? l("Сповіщення увімкнено", "Notifications enabled")
+      : l("Увімкнути сповіщення", "Enable Notifications")}
+</button>
+
+{pushMessage && (
+  <p role="status" className="text-sm">
+    {pushMessage}
+  </p>
+)}
       </div>
     </header>
     {!isStandalone() && <div className="mt-4 rounded-2xl border border-brand-line bg-white p-3"><button className="text-sm font-semibold text-[#765487]" aria-expanded={installHelp} onClick={()=>setInstallHelp(v=>!v)}>{l("Встановити Colour Lab на телефон","Install Colour Lab on your phone")} {installHelp?"−":"+"}</button>{installHelp&&<p className="mt-2 text-sm leading-6 text-brand-sub">{l("На iPhone відкрийте цю сторінку в Safari → Поділитися → На початковий екран → Додати. Потім відкрийте іконку та увійдіть.","On iPhone open this page in Safari → Share → Add to Home Screen → Add. Open the new icon and sign in.")}</p>}</div>}

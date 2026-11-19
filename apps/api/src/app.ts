@@ -11,6 +11,20 @@ import { createBooking, updateBookingStatus, rescheduleBooking } from "./service
 import { createAvailabilityBlock } from "./services/availabilityBlock.service.js";
 import { getAvailableSlots } from "./services/availability.service.js";
 import { enqueueBookingCreatedNotification } from "./services/notification.service.js";
+import { sendAdminWebPush } from "./services/webPush.service.js";
+import { z } from "zod";
+
+
+const webPushSubscriptionSchema = z.object({
+  endpoint: z.url({
+    protocol: /^https$/,
+  }).max(2048),
+  keys: z.object({
+    p256dh: z.string().min(40).max(256),
+    auth: z.string().min(16).max(256),
+  }),
+});
+
 
 const TIMEZONE = process.env.TIMEZONE ?? "Europe/Dublin";
 
@@ -22,11 +36,7 @@ export function createApp() {
   app.use("/api/catalog", catalogRouter);
   app.use("/api/admin", adminAuthRouter);
 
-  const liveClients = new Map<string, Set<express.Response>>();
-  const publishAdminPush = (payload: { title: string; body: string; at: string }) => {
-    const msg = `event: booking\ndata: ${JSON.stringify(payload)}\n\n`;
-    for (const listeners of liveClients.values()) for (const res of listeners) res.write(msg);
-  };
+
 
   app.get("/health", (_req, res) => res.json({ ok: true }));
 
@@ -63,10 +73,16 @@ export function createApp() {
         },
       });
 
-      publishAdminPush({
+      void sendAdminWebPush({
         title: "Новий запис",
-        body: `${result.service.title} • ${result.start.toISO()}${parsed.data.clientName ? ` • ${parsed.data.clientName}` : ""}`,
-        at: new Date().toISOString(),
+        body: `${result.service.title} • ${
+  DateTime.fromISO(result.start.toISO()!, { setZone: true })
+    .setZone(TIMEZONE)
+    .toFormat("dd/MM/yyyy HH:mm")
+}`,
+        url: "/admin",
+          }).catch((error) => {
+        console.error("Web Push notification failed:", error);
       });
 
       return res.json({
@@ -91,43 +107,56 @@ export function createApp() {
     }
   });
 
-  app.post("/api/admin/push/subscribe", requireAdminAuth, async (req, res) => {
-    const clientId = String(req.body?.clientId ?? "").trim();
-    if (!clientId) return res.status(400).json({ error: "Invalid push subscription payload" });
-    await PushSubscription.updateOne({ clientId }, { $set: { clientId, enabled: true, userAgent: req.body?.userAgent, lastSeenAt: new Date() } }, { upsert: true });
-    res.status(201).json({ ok: true });
-  });
 
-  app.get("/api/admin/push/stream", async (req, res) => {
-    try {
-      verifyAdminToken(String(req.query.token ?? ""));
-    } catch {
-      return res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
+app.get(
+  "/api/admin/web-push/public-key",
+  requireAdminAuth,
+  (_req, res) => {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      return res.status(503).json({
+        error: "Web Push is not configured",
+      });
     }
-    const clientId = String(req.query.clientId ?? "").trim();
-    if (!clientId) return res.status(400).json({ error: "clientId is required" });
 
-    const sub = await PushSubscription.findOne({ clientId, enabled: true }).lean();
-    if (!sub) return res.status(403).json({ error: "Forbidden", code: "FORBIDDEN" });
+    return res.json({ publicKey });
+  }
+);
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache, no-transform");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders();
+app.post(
+  "/api/admin/web-push/subscribe",
+  requireAdminAuth,
+  async (req, res) => {
+    const parsed = webPushSubscriptionSchema.safeParse(req.body);
 
-    let listeners = liveClients.get(clientId);
-    if (!listeners) {
-      listeners = new Set();
-      liveClients.set(clientId, listeners);
+    if (!parsed.success) {
+      return res.status(400).json({
+        error: "Invalid Web Push subscription",
+      });
     }
-    listeners.add(res);
 
-    const keepAlive = setInterval(() => res.write(`event: ping\ndata: ${Date.now()}\n\n`), 25000);
-    req.on("close", () => {
-      clearInterval(keepAlive);
-      listeners?.delete(res);
-    });
-  });
+    const { endpoint, keys } = parsed.data;
+
+    await PushSubscription.updateOne(
+      { endpoint },
+      {
+        $set: {
+          endpoint,
+          keys,
+          enabled: true,
+          userAgent: req.get("user-agent")?.slice(0, 500),
+          lastSeenAt: new Date(),
+        },
+      },
+      { upsert: true }
+    );
+
+    return res.status(201).json({ ok: true });
+  }
+);
+
+
 
   app.get("/api/admin/calendar", requireAdminAuth, async (req, res) => {
     const date = String(req.query.date ?? "");
