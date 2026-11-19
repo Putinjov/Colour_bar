@@ -112,3 +112,12 @@ export function adminRemoveBlock(token: string, id: string) {
     method: "DELETE", headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export type ManualBooking = { serviceId: string; startAt: string; clientName: string; phone: string; notes?: string };
+type SavedAppointment = { id: string; startAt: string; endAt: string };
+export function adminCreateBooking(token: string, payload: ManualBooking) {
+  return http<SavedAppointment>("/api/admin/bookings", { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+}
+export function adminRescheduleBooking(token: string, id: string, startAt: string) {
+  return http<SavedAppointment>(`/api/admin/bookings/${encodeURIComponent(id)}/reschedule`, { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ startAt }) });
+}

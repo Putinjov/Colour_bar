@@ -29,3 +29,9 @@ it("rejects anonymous availability mutations", async () => {
   expect((await request(app).post("/api/admin/block").send({})).status).toBe(401);
   expect((await request(app).delete("/api/admin/block/507f191e810c19729de860ea")).status).toBe(401);
 });
+
+it("rejects anonymous manual booking and reschedule", async () => {
+ const {createApp}=await import("../app.js"); const app=createApp();
+ expect((await request(app).post("/api/admin/bookings").send({})).status).toBe(401);
+ expect((await request(app).patch("/api/admin/bookings/507f191e810c19729de860ea/reschedule").send({})).status).toBe(401);
+});

@@ -7,7 +7,7 @@ import adminAuthRouter from "./routes/adminAuth.js";
 import { bookingCreateSchema, adminBlockSchema } from "./validators.js";
 import { AvailabilityBlock, Booking, PushSubscription, Service, BOOKING_STATUSES, type BookingStatus } from "./models.js";
 import { requireAdminAuth, verifyAdminToken } from "./auth.js";
-import { createBooking, updateBookingStatus } from "./services/booking.service.js";
+import { createBooking, updateBookingStatus, rescheduleBooking } from "./services/booking.service.js";
 import { createAvailabilityBlock } from "./services/availabilityBlock.service.js";
 import { getAvailableSlots } from "./services/availability.service.js";
 import { enqueueBookingCreatedNotification } from "./services/notification.service.js";
@@ -176,6 +176,29 @@ export function createApp() {
     ].sort((a, b) => String(a.startAt).localeCompare(String(b.startAt)));
 
     res.json(items);
+  });
+
+  // Manual entries deliberately allow custom hours and same-day appointments.
+  function adminBookingError(res: express.Response, error: unknown) {
+    const message = error instanceof Error ? error.message : "";
+    const codes: Record<string, number> = { SERVICE_NOT_FOUND: 404, BOOKING_NOT_FOUND: 404, INVALID_START: 400, INVALID_STATUS_TRANSITION: 409, SLOT_BUSY: 409, BOOKING_LOCK_TIMEOUT: 503 };
+    return res.status(codes[message] ?? 500).json({ error: codes[message] ? message : "Unable to save appointment" });
+  }
+  app.post("/api/admin/bookings", requireAdminAuth, async (req, res) => {
+    const parsed = bookingCreateSchema.safeParse(req.body);
+    if (!parsed.success || !isValidObjectId(parsed.data.serviceId)) return res.status(400).json({ error: "INVALID_INPUT" });
+    if (Date.parse(parsed.data.startAt) <= Date.now()) return res.status(400).json({ error: "INVALID_START" });
+    try {
+      const result = await createBooking(parsed.data);
+      return res.status(201).json({ id: String(result.created._id), startAt: result.start.toISO(), endAt: result.end.toISO() });
+    } catch (error) { return adminBookingError(res, error); }
+  });
+  app.patch("/api/admin/bookings/:id/reschedule", requireAdminAuth, async (req, res) => {
+    if (!isValidObjectId(req.params.id) || typeof req.body?.startAt !== "string") return res.status(400).json({ error: "INVALID_INPUT" });
+    try {
+      const result = await rescheduleBooking(req.params.id, req.body.startAt);
+      return res.json({ id: String(result._id), startAt: result.startAt.toISOString(), endAt: result.endAt.toISOString() });
+    } catch (error) { return adminBookingError(res, error); }
   });
 
   app.get("/api/admin/bookings", requireAdminAuth, async (req, res) => {

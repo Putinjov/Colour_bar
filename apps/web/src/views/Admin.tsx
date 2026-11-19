@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { DateTime } from "luxon";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
-import { adminGetCalendar, adminUpdateBookingStatus, adminBlockRange, adminRemoveBlock, type AdminBooking } from "../api/admin.js";
+import { adminGetCalendar, adminUpdateBookingStatus, adminBlockRange, adminRemoveBlock, adminCreateBooking, adminRescheduleBooking, type ManualBooking, type AdminBooking } from "../api/admin.js";
+import { getServices } from "../lib/api.js";
 import { clearAdminToken, getAdminToken } from "../lib/adminAuth.js";
 import { useI18n } from "../i18n.js";
 import { actionsForStatus, activeBooking, itemsOnDay, localDate, monthDays, SALON_ZONE } from "../features/admin/calendar.js";
@@ -33,6 +34,8 @@ function Calendar({ token }: { token: string }) {
   const [loggedOut, setLoggedOut] = useState(false);
   const qc = useQueryClient();
   const [showBlock, setShowBlock] = useState(false);
+  const [editing, setEditing] = useState<AdminBooking | 'new' | null>(null);
+  const saveAppointment = useMutation({ mutationFn: (payload: ManualBooking | { id: string; startAt: string }) => 'id' in payload ? adminRescheduleBooking(token, payload.id, payload.startAt) : adminCreateBooking(token, payload), onSuccess: result => { const day = localDate(result.startAt); setSelected(day.toISODate()!); setMonth(day.startOf('month').toISODate()!); setEditing(null); return qc.invalidateQueries({ queryKey: ['adminCalendar'] }); } });
   const blockMutation = useMutation({ mutationFn: (payload: { startAt: string; endAt: string; notes?: string }) => adminBlockRange(token, payload), onSuccess: () => { setShowBlock(false); return qc.invalidateQueries({ queryKey: ["adminCalendar"] }); } });
   const removeBlock = useMutation({ mutationFn: (id: string) => adminRemoveBlock(token, id), onSuccess: () => qc.invalidateQueries({ queryKey: ["adminCalendar"] }) });
   const calendar = useQuery({
@@ -59,7 +62,7 @@ function Calendar({ token }: { token: string }) {
     qc.removeQueries({ queryKey: ["adminCalendar"] });
     setLoggedOut(true);
   }
-  if (loggedOut || calendar.error?.message === "Unauthorized" || status.error?.message === "Unauthorized" || blockMutation.error?.message === "Unauthorized" || removeBlock.error?.message === "Unauthorized") return <Navigate to="/admin/login" replace />;
+  if (loggedOut || calendar.error?.message === "Unauthorized" || status.error?.message === "Unauthorized" || blockMutation.error?.message === "Unauthorized" || removeBlock.error?.message === "Unauthorized" || saveAppointment.error?.message === "Unauthorized") return <Navigate to="/admin/login" replace />;
   const labels = lang === "uk" ? ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   return <main className="mx-auto max-w-5xl px-3 py-6 sm:px-6">
     <header className="flex flex-wrap items-center justify-between gap-3">
@@ -105,7 +108,11 @@ function Calendar({ token }: { token: string }) {
     <section className="mt-4">
       <div className="flex items-center justify-between gap-2"><h2 className="text-lg font-semibold first-letter:uppercase">{localDate(selected).setLocale(locale).toFormat("cccc, d MMMM")}</h2>
       <button className={btn} onClick={() => calendar.refetch()} disabled={calendar.isFetching}>{l("Оновити","Refresh")}</button></div>
-      <button className={showBlock ? "mt-3 px-2 py-2 text-sm font-medium text-brand-sub underline" : btn + " mt-3"} aria-expanded={showBlock} onClick={() => { blockMutation.reset(); setShowBlock(v => !v); }}>{showBlock ? l("Закрити форму","Close form") : l("+ Заблокувати час"," + Block time")}</button>
+      <div className="mt-3 flex flex-wrap gap-2">
+      <button className="rounded-full bg-brand-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={saveAppointment.isPending} onClick={() => { saveAppointment.reset(); setShowBlock(false); setEditing(editing === "new" ? null : "new"); }}>{l("+ Новий запис","+ New appointment")}</button>
+      <button className={showBlock ? "mt-3 px-2 py-2 text-sm font-medium text-brand-sub underline" : btn + " mt-3"} aria-expanded={showBlock} onClick={() => { blockMutation.reset(); setEditing(null); setShowBlock(v => !v); }}>{showBlock ? l("Закрити форму","Close form") : l("+ Заблокувати час"," + Block time")}</button>
+      </div>
+      {editing && <AppointmentForm key={editing === "new" ? "new"+selected : editing.id} selected={selected} item={editing === "new" ? undefined : editing} uk={lang === "uk"} busy={saveAppointment.isPending} error={saveAppointment.error?.message} onCancel={() => { setEditing(null); saveAppointment.reset(); }} onSave={payload => saveAppointment.mutate(payload)} />}
       {showBlock && <BlockForm key={selected} selected={selected} uk={lang === "uk"} busy={blockMutation.isPending} onSave={payload => blockMutation.mutate(payload)} />}
       {blockMutation.error && <p role="alert" className="mt-2 text-red-600">{blockMutation.error.message}</p>}
       {removeBlock.error && <p role="alert" className="mt-2 text-red-600">{removeBlock.error.message}</p>}
@@ -114,7 +121,7 @@ function Calendar({ token }: { token: string }) {
       {status.error && <p role="alert" className="mt-3 text-red-600">{status.error.message}</p>}
       {!calendar.isLoading && !calendar.error && dayItems.length === 0 && <p className="mt-3 rounded-2xl border border-brand-line bg-white p-5 text-brand-sub">{l("Немає записів","No appointments")}</p>}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {dayItems.map(item => <BookingCard key={item.kind + item.id} item={item} uk={lang === "uk"} busy={status.isPending || removeBlock.isPending} onRemove={() => { if (window.confirm(l("Розблокувати цей час?", "Unblock this time?"))) removeBlock.mutate(item.id); }} onChange={next => {
+        {dayItems.map(item => <BookingCard key={item.kind + item.id} item={item} uk={lang === "uk"} busy={status.isPending || removeBlock.isPending || saveAppointment.isPending} onMove={() => { saveAppointment.reset(); setShowBlock(false); setEditing(item); }} onRemove={() => { if (window.confirm(l("Розблокувати цей час?", "Unblock this time?"))) removeBlock.mutate(item.id); }} onChange={next => {
           if (["cancelled","declined","no_show"].includes(next) && !window.confirm(l("Змінити статус запису?", "Change appointment status?"))) return;
           status.mutate({ id: item.id, next });
         }} />)}
@@ -124,7 +131,7 @@ function Calendar({ token }: { token: string }) {
   </main>;
 }
 
-function BookingCard({ item, uk, busy, onChange, onRemove }: { item: AdminBooking; uk: boolean; busy: boolean; onChange: (status: string) => void; onRemove: () => void }) {
+function BookingCard({ item, uk, busy, onChange, onRemove, onMove }: { item: AdminBooking; uk: boolean; busy: boolean; onChange: (status: string) => void; onRemove: () => void; onMove: () => void }) {
   const idx = uk ? 0 : 1;
   const blocked = item.kind !== "booking";
   const status = blocked ? "blocked" : item.status;
@@ -137,7 +144,7 @@ function BookingCard({ item, uk, busy, onChange, onRemove }: { item: AdminBookin
     {item.phone && <a className="text-sm text-brand-purple underline" href={"tel:" + item.phone.replace(/[^+\d]/g,"")}>{item.phone}</a>}
     {item.notes && <p className="mt-2 whitespace-pre-wrap rounded-lg bg-brand-surface p-2 text-sm">{item.notes}</p>}
     {blocked && <button className={btn + " mt-3"} disabled={busy} onClick={onRemove}>{uk ? "Розблокувати" : "Unblock"}</button>}
-    {!blocked && <div className="mt-3 flex flex-wrap gap-2">{(actionsForStatus[status] ?? []).filter(next => !["completed","no_show"].includes(next) || end <= DateTime.now()).map(next => <button key={next} className={btn} disabled={busy} onClick={() => onChange(next)}>{actionLabels[next][idx]}</button>)}</div>}
+    {!blocked && <div className="mt-3 flex flex-wrap gap-2">{activeBooking(item) && <button className={btn} disabled={busy} onClick={onMove}>{uk ? "Перенести" : "Reschedule"}</button>}{(actionsForStatus[status] ?? []).filter(next => !["completed","no_show"].includes(next) || end <= DateTime.now()).map(next => <button key={next} className={btn} disabled={busy} onClick={() => onChange(next)}>{actionLabels[next][idx]}</button>)}</div>}
   </article>;
 }
 
@@ -169,4 +176,46 @@ function BlockForm({ selected, uk, busy, onSave }: { selected: string; uk: boole
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
     <button className="w-full rounded-xl bg-brand-ink px-4 py-3 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto" disabled={busy}>{l("Заблокувати","Block")}</button>
   </form>;
+}
+
+function AppointmentForm({selected,item,uk,busy,error,onSave,onCancel}:{selected:string;item?:AdminBooking;uk:boolean;busy:boolean;error?:string;onSave:(payload:ManualBooking|{id:string;startAt:string})=>void;onCancel:()=>void}) {
+ const l=(a:string,b:string)=>uk?a:b;
+ const today=DateTime.now().setZone(SALON_ZONE).toISODate()!;
+ const [date,setDate]=useState(item?localDate(item.startAt).toISODate()!:selected<today?today:selected);
+ const [time,setTime]=useState(item?localDate(item.startAt).toFormat("HH:mm"):"10:00");
+ const [serviceId,setServiceId]=useState("");
+ const [name,setName]=useState("");
+ const [phone,setPhone]=useState("");
+ const [notes,setNotes]=useState("");
+ const [localError,setLocalError]=useState("");
+ const services=useQuery({queryKey:["services"],queryFn:getServices,enabled:!item});
+ const service=services.data?.find(s=>s.id===serviceId);
+ const duration=item?localDate(item.endAt).diff(localDate(item.startAt),"minutes").minutes:service?.durationMin;
+ const start=localDate(date+"T"+time);
+ const end=duration&&start.isValid?start.plus({minutes:duration}):null;
+ const field="block box-border w-full max-w-full min-w-0 appearance-none rounded-xl border border-brand-line bg-white px-3 py-2 text-base min-h-[44px]";
+ const errors:Record<string,string>={SLOT_BUSY:l("Цей час зайнятий або заблокований.","This time overlaps an appointment or block."),INVALID_START:l("Оберіть майбутній час.","Choose a future time."),INVALID_STATUS_TRANSITION:l("Статус запису змінився. Оновіть календар.","Appointment changed. Refresh the calendar."),INVALID_INPUT:l("Перевірте введені дані.","Check the entered details."),BOOKING_LOCK_TIMEOUT:l("Сервіс зайнятий. Спробуйте ще раз.","Service busy. Try again.")};
+ return <form className="mt-3 min-w-0 space-y-3 rounded-2xl border border-brand-line bg-white p-4" onSubmit={e=>{
+  e.preventDefault();setLocalError("");
+  if(!start.isValid||start.toMillis()<=Date.now()||start.toFormat("yyyy-MM-dd HH:mm")!==date+" "+time){setLocalError(l("Оберіть коректний майбутній час.","Choose a valid future time."));return;}
+  if(item){onSave({id:item.id,startAt:start.toUTC().toISO()!});return;}
+  if(!service||name.trim().length<2||phone.trim().length<6){setLocalError(errors.INVALID_INPUT);return;}
+  onSave({serviceId,startAt:start.toUTC().toISO()!,clientName:name.trim(),phone:phone.trim(),notes:notes.trim()||undefined});
+ }}>
+ <h3 className="font-semibold">{item?l("Перенести запис","Reschedule appointment"):l("Новий запис","New appointment")}</h3>
+ {item?<p className="text-sm">{item.clientName} · {item.service?.title}</p>:<>
+ <label className="block min-w-0 space-y-1 text-sm">{l("Послуга","Service")}<select required className={field} value={serviceId} onChange={e=>setServiceId(e.target.value)}><option value="">{l("Оберіть послугу","Choose service")}</option>{services.data?.map(s=><option key={s.id} value={s.id}>{s.title} · {s.durationMin} min</option>)}</select></label>
+ {services.error&&<button type="button" className="text-sm underline" onClick={()=>services.refetch()}>{l("Повторити завантаження","Retry loading services")}</button>}
+ <label className="block min-w-0 space-y-1 text-sm">{l("Ім’я клієнта","Client name")}<input className={field} required minLength={2} maxLength={60} value={name} onChange={e=>setName(e.target.value)}/></label>
+ <label className="block min-w-0 space-y-1 text-sm">{l("Телефон","Phone")}<input className={field} required type="tel" minLength={6} maxLength={30} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
+ <label className="block min-w-0 space-y-1 text-sm">{l("Коментар","Notes")}<textarea className={field} maxLength={300} value={notes} onChange={e=>setNotes(e.target.value)}/></label></>}
+ <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+ <label className="block min-w-0 space-y-1 text-sm">{l("Дата","Date")}<input type="date" required min={today} className={field} value={date} onChange={e=>setDate(e.target.value)}/></label>
+ <label className="block min-w-0 space-y-1 text-sm">{l("Час","Time")}<input type="time" required className={field} value={time} onChange={e=>setTime(e.target.value)}/></label>
+ </div>
+ {end&&<p className="text-sm text-brand-sub">{l("Закінчення","Ends")}: {end.toFormat("dd/LL HH:mm")} · {duration} min</p>}
+ <p className="text-xs text-brand-sub">{l("Можна записати поза стандартним графіком. Перетини з іншими записами та блокуваннями заборонені.","Custom hours are allowed. Overlapping appointments and blocks are not.")}</p>
+ {(localError||error)&&<p role="alert" className="text-sm text-red-700">{localError||errors[error!]||error}</p>}
+ <div className="flex flex-wrap gap-2"><button disabled={busy} className="rounded-xl bg-brand-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{l("Зберегти","Save")}</button><button type="button" disabled={busy} className={btn} onClick={onCancel}>{l("Скасувати","Cancel")}</button></div>
+ </form>;
 }

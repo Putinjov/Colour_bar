@@ -85,9 +85,10 @@ export async function getAvailableSlots(input: {
     }));
 }
 
-export async function hasBusyConflict(startAt: DateTime, endAt: DateTime) {
+export async function hasBusyConflict(startAt: DateTime, endAt: DateTime, excludeBookingId?: string) {
   const [booking, block] = await Promise.all([
     Booking.findOne({
+      ...(excludeBookingId ? { _id: { $ne: excludeBookingId } } : {}),
       status: { $in: BLOCKING_STATUSES },
       startAt: { $lt: endAt.toJSDate() },
       endAt: { $gt: startAt.toJSDate() },
