@@ -64,7 +64,11 @@ export const NotificationLog = model("NotificationLog", NotificationLogSchema);
 
 const PushSubscriptionSchema = new Schema(
   {
-    clientId: { type: String, required: true, unique: true },
+    endpoint: { type: String, required: true, unique: true },
+    keys: {
+      p256dh: { type: String, required: true },
+      auth: { type: String, required: true },
+    },
     enabled: { type: Boolean, default: true },
     userAgent: { type: String },
     lastSeenAt: { type: Date, default: () => new Date() },
@@ -72,7 +76,11 @@ const PushSubscriptionSchema = new Schema(
   { timestamps: true }
 );
 
-export const PushSubscription = model("PushSubscription", PushSubscriptionSchema);
+export const PushSubscription = model(
+  "PushSubscription",
+  PushSubscriptionSchema,
+  "webpushsubscriptions"
+);
 
 const BookingCreationLockSchema = new Schema(
   {

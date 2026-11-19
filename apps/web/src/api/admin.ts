@@ -79,19 +79,43 @@ export function adminBlockRange(
 }
 
 
-export function adminPushSubscribe(
-  token: string,
-  subscription: { clientId: string; userAgent?: string }
-) {
-  return http<{ ok: boolean }>("/api/admin/push/subscribe", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(subscription),
-  });
+
+export type AdminWebPushSubscription = {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+};
+
+export function adminGetWebPushPublicKey(token: string) {
+  return http<{ publicKey: string }>(
+    "/api/admin/web-push/public-key",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 }
+
+export function adminWebPushSubscribe(
+  token: string,
+  subscription: AdminWebPushSubscription
+) {
+  return http<{ ok: boolean }>(
+    "/api/admin/web-push/subscribe",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(subscription),
+    }
+  );
+}
+
 
 export function adminGetCalendar(dateISO: string, token: string) {
   return http<AdminBooking[]>(`/api/admin/calendar?date=${encodeURIComponent(dateISO)}&range=month`, {
