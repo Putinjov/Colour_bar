@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
 import { adminGetCalendar, adminUpdateBookingStatus, adminBlockRange, adminRemoveBlock, adminCreateBooking, adminRescheduleBooking, type ManualBooking, type AdminBooking } from "../api/admin.js";
+import { isStandalone } from "../features/admin/pwa.js";
 import { getServices } from "../lib/api.js";
 import { clearAdminToken, getAdminToken } from "../lib/adminAuth.js";
 import { useI18n } from "../i18n.js";
@@ -33,6 +34,7 @@ function Calendar({ token }: { token: string }) {
   const [month, setMonth] = useState(localDate(today).startOf("month").toISODate()!);
   const [loggedOut, setLoggedOut] = useState(false);
   const qc = useQueryClient();
+  const [installHelp, setInstallHelp] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const [editing, setEditing] = useState<AdminBooking | 'new' | null>(null);
   const saveAppointment = useMutation({ mutationFn: (payload: ManualBooking | { id: string; startAt: string }) => 'id' in payload ? adminRescheduleBooking(token, payload.id, payload.startAt) : adminCreateBooking(token, payload), onSuccess: result => { const day = localDate(result.startAt); setSelected(day.toISODate()!); setMonth(day.startOf('month').toISODate()!); setEditing(null); return qc.invalidateQueries({ queryKey: ['adminCalendar'] }); } });
@@ -64,7 +66,7 @@ function Calendar({ token }: { token: string }) {
   }
   if (loggedOut || calendar.error?.message === "Unauthorized" || status.error?.message === "Unauthorized" || blockMutation.error?.message === "Unauthorized" || removeBlock.error?.message === "Unauthorized" || saveAppointment.error?.message === "Unauthorized") return <Navigate to="/admin/login" replace />;
   const labels = lang === "uk" ? ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  return <main className="mx-auto max-w-5xl px-3 py-6 sm:px-6">
+  return <main className="mx-auto max-w-5xl px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6">
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div><h1 className="text-2xl font-semibold text-brand-ink">{l("Календар", "Calendar")}</h1>
       <p className="text-sm text-brand-sub">Colour Lab · {l("Кабінет майстра", "Studio manager")}</p></div>
@@ -74,6 +76,7 @@ function Calendar({ token }: { token: string }) {
         <button className={btn} onClick={logout}>{l("Вийти", "Logout")}</button>
       </div>
     </header>
+    {!isStandalone() && <div className="mt-4 rounded-2xl border border-brand-line bg-white p-3"><button className="text-sm font-semibold text-[#765487]" aria-expanded={installHelp} onClick={()=>setInstallHelp(v=>!v)}>{l("Встановити Colour Lab на телефон","Install Colour Lab on your phone")} {installHelp?"−":"+"}</button>{installHelp&&<p className="mt-2 text-sm leading-6 text-brand-sub">{l("На iPhone відкрийте цю сторінку в Safari → Поділитися → На початковий екран → Додати. Потім відкрийте іконку та увійдіть.","On iPhone open this page in Safari → Share → Add to Home Screen → Add. Open the new icon and sign in.")}</p>}</div>}
     <div className="mt-5 grid grid-cols-2 gap-3">
       <div className="rounded-2xl bg-brand-muted p-4"><div className="text-sm text-brand-sub">{l("Активні за місяць", "Active this month")}</div><strong className="text-2xl">{items.filter(activeBooking).length}</strong></div>
       <div className="rounded-2xl border border-brand-line bg-white p-4"><div className="text-sm text-brand-sub">{l("Очікують", "Pending")}</div><strong className="text-2xl">{items.filter(x => x.status === "pending").length}</strong></div>

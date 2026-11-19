@@ -21,7 +21,9 @@ function preloadHeroImage() {
   document.head.appendChild(link);
 }
 
-preloadHeroImage();
+if (!/^\/admin(?:\/|-|$)/.test(location.pathname)) preloadHeroImage();
+import { configureManagerPwa } from "./features/admin/pwa.js";
+configureManagerPwa();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
