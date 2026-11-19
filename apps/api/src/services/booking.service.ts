@@ -84,3 +84,24 @@ export async function updateBookingStatus(bookingId: string, toStatus: BookingSt
   await booking.save();
   return booking;
 }
+
+export async function rescheduleBooking(bookingId: string, startAt: string) {
+  const start = parseUtcISO(startAt);
+  if (!start || start.toMillis() <= Date.now()) throw new Error("INVALID_START");
+  return withBookingCreationLock(async () => {
+    const booking = await Booking.findById(bookingId).lean();
+    if (!booking) throw new Error("BOOKING_NOT_FOUND");
+    if (!["pending", "confirmed"].includes(booking.status ?? "")) throw new Error("INVALID_STATUS_TRANSITION");
+    const duration = booking.endAt.getTime() - booking.startAt.getTime();
+    if (duration <= 0) throw new Error("INVALID_START");
+    const end = start.plus({ milliseconds: duration });
+    if (await hasBusyConflict(start, end, bookingId)) throw new Error("SLOT_BUSY");
+    const updated = await Booking.findOneAndUpdate(
+      { _id: bookingId, status: booking.status, startAt: booking.startAt, endAt: booking.endAt },
+      { $set: { startAt: start.toJSDate(), endAt: end.toJSDate() } },
+      { new: true }
+    );
+    if (!updated) throw new Error("INVALID_STATUS_TRANSITION");
+    return updated;
+  });
+}
