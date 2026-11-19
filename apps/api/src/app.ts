@@ -80,7 +80,7 @@ export function createApp() {
     .setZone(TIMEZONE)
     .toFormat("dd/MM/yyyy HH:mm")
 }`,
-        url: "/admin",
+        url: `/admin?date=${result.start.setZone(TIMEZONE).toISODate()}&booking=${encodeURIComponent(String(result.created._id))}`,
           }).catch((error) => {
         console.error("Web Push notification failed:", error);
       });
