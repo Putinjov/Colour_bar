@@ -27,6 +27,7 @@
     "resend": "^6.9.2"
   },
   "overrides": {
-    "minimatch": "^10.2.2"
+    "minimatch": "^10.2.2",
+    "qs": "6.16.2"
   }
 }
