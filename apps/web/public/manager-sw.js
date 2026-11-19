@@ -27,9 +27,9 @@ self.addEventListener("push", (event) => {
     body: payload.body || "Нове бронювання",
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
-    tag: "new-booking",
+    tag: typeof payload.url === "string" ? `booking-${payload.url.split("booking=")[1] || "new"}` : "new-booking",
     data: {
-      url: "/admin",
+      url: typeof payload.url === "string" ? payload.url : "/admin",
     },
   };
 
@@ -41,10 +41,12 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const destination = new URL(
-    "/admin",
-    self.location.origin
-  ).href;
+  const requested = new URL(event.notification.data?.url || "/admin", self.location.origin);
+  const destination =
+    requested.origin === self.location.origin &&
+    requested.pathname === "/admin"
+      ? requested.href
+      : new URL("/admin", self.location.origin).href;
 
   event.waitUntil(
     (async () => {
