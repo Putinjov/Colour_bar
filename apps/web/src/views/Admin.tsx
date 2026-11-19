@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { adminGetCalendar, adminUpdateBookingStatus, adminBlockRange, adminRemoveBlock, adminCreateBooking, adminRescheduleBooking, type ManualBooking, type AdminBooking } from "../api/admin.js";
 import { isStandalone } from "../features/admin/pwa.js";
 import { getServices } from "../lib/api.js";
@@ -34,8 +34,12 @@ function Calendar({ token }: { token: string }) {
   const l = (uk: string, en: string) => lang === "uk" ? uk : en;
   const locale = lang === "uk" ? "uk-UA" : "en-IE";
   const today = DateTime.now().setZone(SALON_ZONE).toISODate()!;
-  const [selected, setSelected] = useState(today);
-  const [month, setMonth] = useState(localDate(today).startOf("month").toISODate()!);
+  const [searchParams] = useSearchParams();
+  const requestedDate = searchParams.get("date");
+  const deepLinkDate = requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && DateTime.fromISO(requestedDate, { zone: SALON_ZONE }).isValid ? requestedDate : today;
+  const deepLinkBooking = searchParams.get("booking");
+  const [selected, setSelected] = useState(deepLinkDate);
+  const [month, setMonth] = useState(localDate(deepLinkDate).startOf("month").toISODate()!);
   const [loggedOut, setLoggedOut] = useState(false);
   const qc = useQueryClient();
   const [pushLoading, setPushLoading] = useState(false);
@@ -70,6 +74,11 @@ function Calendar({ token }: { token: string }) {
   });
   const items = calendar.data ?? [];
   const dayItems = itemsOnDay(items, selected);
+  useEffect(() => {
+    if (!deepLinkBooking || calendar.isLoading || !items.some(item => item.kind === "booking" && item.id === deepLinkBooking)) return;
+    const node = document.getElementById("booking-" + deepLinkBooking);
+    node?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [deepLinkBooking, calendar.isLoading, items]);
   const days = monthDays(month);
   const monthDate = localDate(month);
   function shift(delta: number) {
@@ -179,10 +188,10 @@ function Calendar({ token }: { token: string }) {
       {status.error && <p role="alert" className="mt-3 text-red-600">{status.error.message}</p>}
       {!calendar.isLoading && !calendar.error && dayItems.length === 0 && <p className="mt-3 rounded-2xl border border-brand-line bg-white p-5 text-brand-sub">{l("Немає записів","No appointments")}</p>}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {dayItems.map(item => <BookingCard key={item.kind + item.id} item={item} uk={lang === "uk"} busy={status.isPending || removeBlock.isPending || saveAppointment.isPending} onMove={() => { saveAppointment.reset(); setShowBlock(false); setEditing(item); }} onRemove={() => { if (window.confirm(l("Розблокувати цей час?", "Unblock this time?"))) removeBlock.mutate(item.id); }} onChange={next => {
+        {dayItems.map(item => <div key={item.kind + item.id} id={item.kind === "booking" ? "booking-" + item.id : undefined} className={item.kind === "booking" && item.id === deepLinkBooking ? "rounded-2xl ring-2 ring-brand-purple ring-offset-2" : ""}><BookingCard key={item.kind + item.id} item={item} uk={lang === "uk"} busy={status.isPending || removeBlock.isPending || saveAppointment.isPending} onMove={() => { saveAppointment.reset(); setShowBlock(false); setEditing(item); }} onRemove={() => { if (window.confirm(l("Розблокувати цей час?", "Unblock this time?"))) removeBlock.mutate(item.id); }} onChange={next => {
           if (["cancelled","declined","no_show"].includes(next) && !window.confirm(l("Змінити статус запису?", "Change appointment status?"))) return;
           status.mutate({ id: item.id, next });
-        }} />)}
+        }} /></div>)}
       </div>
     </section>
     <p className="mt-6 text-xs text-brand-sub">{l("Календар оновлюється кожні 30 секунд, поки відкритий. Email-сповіщення залишаються активними.", "Calendar refreshes every 30 seconds while open. Email notifications remain active.")}</p>
