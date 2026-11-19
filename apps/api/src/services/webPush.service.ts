@@ -1,5 +1,5 @@
 
-import webpush from "web-push";
+import * as webpush from "web-push";
 import { PushSubscription } from "../models.js";
 
 type PushMessage = {
